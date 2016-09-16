@@ -1,0 +1,25 @@
+#!/usr/bin/zsh
+#
+# install_modos -- install modo, tsdo and l10nrestore
+#
+# 2016-09-13    Ready. (TN)
+
+emulate -L zsh
+
+if [[ $EUID -ne 0 ]]; then
+    print -- ${0:t}: Ei onnistu ilman sudoa\! 1>&2
+    exit 1
+fi
+
+instopts=(-g staff -m 755)
+dest=/usr/local/sbin
+
+for source in modo tsdo l10nrestore.py; do
+    if [[ $source == *.py ]]; then
+        print -- ${0:t}: $source -\> $dest/${source:r}
+        install $instopts $source $dest/${source:r}
+    else
+        print -- ${0:t}: $source -\> $dest
+        install $instopts $source $dest
+    fi
+done

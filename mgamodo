@@ -1,0 +1,54 @@
+#!/usr/bin/zsh
+#
+# mgamodo -- päivitä Mageian .mo-tiedosto
+#
+# Yleisestä modo-skriptistä haarautettu versio Mageian käännösten kääntöön ja
+# asennukseen.
+#
+# 2016-08-11    Päivityksiä.
+
+emulate -L zsh
+
+setopt null_glob
+
+dest=/usr/share/locale/fi/LC_MESSAGES
+temp=/tmp/$USER
+
+# Tarvitaan msgfmt
+if [[ -z $(which msgfmt) ]]; then
+    print -- ${0:t}: Asenna ensin gettext 1&>2
+    exit 1
+fi
+
+if [[ ! -e fi.po  ]]; then
+    print -- ${0:t}: Hakemistossa ei ole fi.po-tiedostoa 1>&2
+    exit 1
+fi
+
+# Pääteellään .mo-kohdetiedoston nimi .pot-tiedoston perusteella
+potfiles=$(ls -1 | grep \.pot)
+if [[ -z $potfiles ]]; then
+    print -- ${0:t}: Kansiossa ei ole .pot-tiedostoja 1&>2
+    exit 2
+fi
+destname=${potfiles:r}.mo
+
+# Asetetaan väliaikaiskansio
+if [[ ! -d $modotemp ]]; then
+    if ! mkdir -p $modotemp; then
+        print -- ${0:t}: Väliaikaiskansion luominen ei onnistu > /dev/stderr
+        exit 1
+    fi
+else
+    rm $modotemp/*.mo 1> /dev/null 2>&1
+fi
+
+# Käännetään ja asennetaan .mo-tiedosto
+print -- ${0:t}: Käännetään fi.po ja kopioidaan -\> $dest...
+if msgfmt -o $modotemp/$destname fi.po; then
+    sudo install --backup=numbered -b -o root -g root -m 644 \
+         $modotemp/$destname $dest && \
+         rm $modotemp/$destname
+else
+    print -- ${0:t}: Käännös ei onnistunut 1>&2
+fi

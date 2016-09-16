@@ -1,0 +1,48 @@
+modo
+
+# 2008-08-06    Bugikorjaus. (TN)
+# 2009-07-11    Lisätty (toistamiseen) uusien tiedostojen käsittely. (TN)
+# 2009-10-13    Lisätty pakotettu tiedostojen päivitys. (TN)
+# 2010-09-14    Lisätty kohdehakemiston automaattinen valinta. (TN)
+# 2011-05-01    Korjattu kohdehakemiston automaattista valintaa. (TN)
+# 2011-08-14    Käytetään .mo-tiedostoille väliaikaiskansiota NFS-ongelmien
+#               takia. (TN)
+# 2011-10-07    Sijoitettu väliaikaiskansio /tmp-puuhun. (TN)
+# 2014-01-10    Vaihdettu sh:sta zsh:hon. (TN)
+# 2014-02-26    Bugikorjaus: testirakenteen [[ … ]] sisällä ei zsh:ssa
+#               tapahdukaan jokerimerkkien laajennusta. (TN)
+# 2015-01-10    Tyylipäivityksiä, parempi varmuuskopiointi. (TN)
+# 2015-04-24    Uusi funktioton rakenne. (TN)
+# 2015-05-16    Bugikorjaus: .mo-tiedostoa ei löytynyt, jos annetussa
+#               tiedostonimessä oli polku. (TN)
+# 2015-05-31    Bugikorjaus: pofiles=$@ ei riitä pitämään sisältöä taulukkona,
+#               tarvitaan pofiles=($@). (TN)
+# 2015-06-01    Muutama bugi- ja pieni tyylikorjaus. (TN)
+# 2015-06-05    Vielä pari bugikorjausta. (TN)
+# 2015-10-13    Luodaan kohdekansio sen sijaan, että luovutettaisiin. (TN)
+# 2016-01-27    Lisätty -- joka print-komentoon. (TN)
+# 2016-08-08    ${0##*/} on zsh:ssa helpommin ${0:t}. (TN)
+# 2016-08-19    Myös ${var:r} käyttöön. (TN)
+# 2016-09-03    ${var:t} ja ${var:r} vielä pariin paikkaan. (TN)
+
+l10nrestore.py (previously morestore.py)
+
+# 2008-06-18  0.1.0   An initial sketch. (TN)
+# 2016-01-18  0.2.0   Back to the project after many a long year. (TN)
+# 2016-09-04  0.9.9   Finally a functional implementations. (TN)
+# 2016-09-13  0.9.91  Added support for .qm files and renamed the program
+#                     to l10nrestore. (TN)
+
+tsdo
+
+# 2009-07-12    Projekti käynnistetty. (TN)
+# 2016-01-24    Siirros zsh:hon. (TN)
+# 2016-05-03    Lisätty -- kaikkiin print-komentoihin. (TN)
+# 2016-09-13    Tehtiin pitkään odottaneita lisämuutoksia modon mallin
+#               mukaisesti. (TN)
+
+mgamodo
+
+# 2012-09-20    Haarautettu modo-skriptistä, jonka viimeisin päivitys
+#               7.10.2011.
+# 2016-08-11    Päivityksiä.

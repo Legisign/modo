@@ -1,0 +1,75 @@
+#!/usr/bin/zsh
+#
+# modo -- käännä ja asenna Gettextin käännöstiedostot
+#
+# 2016-09-03    ${var:t} ja ${var:r} vielä pariin paikkaan. (TN)
+
+emulate -L zsh
+
+modotemp=/tmp/$(whoami)
+
+# Tarvitaan msgfmt
+if [[ -z $(whence msgfmt) ]]; then
+    print -- ${0:t}: Asenna ensin gettext 1>&2
+    exit 1
+fi
+
+# Asetetaan kohdekansio
+if [[ -r modo.def ]]; then
+    dest=$(<modo.def)
+elif lsb_release -sd 2> /dev/null | grep -q Ubuntu; then
+    dest=/usr/share/locale-langpack/fi/LC_MESSAGES
+else
+    dest=/usr/share/locale/fi/LC_MESSAGES
+fi
+if [[ ! -d $dest ]]; then
+    print -- ${0:t}: Luodaan kohdekansio $dest...
+    if ! sudo mkdir -p $dest; then
+        print -- ${0:t}: Kohdekansion luonti epäonnistui: $dest 1>&2
+        exit 2
+    fi
+    sudo chmod -R go+rX $dest
+fi
+print ${0:t}: Kohdekansio $dest
+
+# Kerätään lähdetiedostot
+if [[ $# -gt 0 ]]; then
+    pofiles=($@)
+elif ls -1 | grep -q .po\$; then
+    for pofile in *.po; do
+        mofile=$dest/${pofile:t:r}.mo
+        [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles=($pofiles $pofile)
+    done
+fi
+if [[ ${#pofiles} -eq 0 ]]; then
+    print -- ${0:t}: Ei lähdetiedostoja 1>&2
+    exit 0
+fi
+
+# Asetetaan väliaikaiskansio
+if [[ ! -d $modotemp ]]; then
+    if ! mkdir $modotemp > /dev/null 2>&1; then
+        print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
+        exit 3
+    fi
+elif ls -1 $modotemp | grep -q .mo\$; then
+    rm $modotemp/*.mo
+fi
+
+# Käännetään lähdetiedostot
+for pofile in $pofiles; do
+    poname=${pofile:t}
+    mofile=$modotemp/${poname:r}.mo
+    print -- ${0:t}: Käännetään $poname...
+    msgfmt -o $mofile $pofile
+done
+
+# Asennetaan kohdetiedostot
+if ls -1 $modotemp | grep -q .mo\$; then
+    for mofile in $modotemp/*.mo; do
+        print -- ${0:t}: Kopioidaan $mofile -\> $dest...
+        sudo install --backup=numbered -o root -g root -m 444 $mofile $dest && rm $mofile
+    done
+else
+    print -- ${0:t}: Ei asennettavia kohdetiedostoja 1>&2
+fi
