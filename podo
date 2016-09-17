@@ -4,8 +4,6 @@
 #
 # Käyttö: podo motsto ... kohdekansio
 #
-# 2016-04-23    Luotu modo-skriptille joskus tarvittava vastinpari. (TN)
-# 2016-09-16    Pieniä tyylikorjauksia. (TN)
 # 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
 
 emulate -L zsh

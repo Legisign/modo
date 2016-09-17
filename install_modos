@@ -3,6 +3,7 @@
 # install_modos -- install modo, tsdo and l10nrestore
 #
 # 2016-09-13    Ready. (TN)
+# 2016-09-17    podo added. do_install function. (TN)
 
 emulate -L zsh
 
@@ -12,14 +13,22 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 instopts=(-g staff -m 755)
-dest=/usr/local/sbin
+binroot=/usr/local
 
-for source in modo tsdo l10nrestore.py; do
-    if [[ $source == *.py ]]; then
-        print -- ${0:t}: $source -\> $dest/${source:r}
+do_install() {
+    local dest, source
+    local -a sources
+    
+    dest=$argv[1]
+    sources=($argv[2,-1])
+    for source in $sources; do
+        print -- ${0:t}: $source -\> $dest/$name
         install $instopts $source $dest/${source:r}
-    else
-        print -- ${0:t}: $source -\> $dest
-        install $instopts $source $dest
-    fi
-done
+    done
+}
+
+# Programs requiring superuser privileges
+do_install $binroot/sbin modo tsdo l10restore.py
+
+# Programs that don't require superuser privileges
+do_install $binroot/bin podo
