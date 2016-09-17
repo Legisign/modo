@@ -1,0 +1,41 @@
+#!/usr/bin/zsh
+#
+# podo -- luo .mo-tiedostosta .po-tiedosto muokkausta varten
+#
+# Käyttö: podo motsto ... kohdekansio
+#
+# 2016-04-23    Luotu modo-skriptille joskus tarvittava vastinpari. (TN)
+# 2016-09-16    Pieniä tyylikorjauksia. (TN)
+# 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
+
+emulate -L zsh
+
+# Tarvitaan msgfmt
+if [[ -z $(whence msgfmt) ]]; then
+    print -- ${0:t}: Asenna ensin gettext 1>&2
+    exit 1
+fi
+
+if [[ $# -lt 2 ]]; then
+    print -- ${0:t}: käyttö: ${0:t} motsto... kohdekansio 1>&2
+    exit 2
+fi
+
+# Selvitä parametrit
+mofiles=$argv[1,-2]
+dest=$argv[$#]
+if [[ ! -d $dest ]]; then
+    print -- ${0:t}: $dest ei ole \(kohde\)kansio 1>&2
+    exit 2
+fi
+print -- ${0:t}: "$mofiles" -\> "$dest"
+
+# Käännä tiedostot
+for mofile in $mofiles; do
+    if [[ ! -r $mofile || $mofile != *.mo ]]; then
+        print -- ${0:t}: $mofile ei ole .mo-tiedosto tai ei voi lukea 1>&2
+        exit 2
+    fi
+    pofile=${mofile:t:r}.po
+    msgunfmt -o $dest/$pofile $mofile
+done
