@@ -1,9 +1,12 @@
 #!/usr/bin/zsh
 #
-# install_modos -- install modo, tsdo and l10nrestore
+# install_modos -- install modo, qmdo and l10nrestore
 #
 # 2016-09-13    Ready. (TN)
 # 2016-09-17    podo added. do_install function. (TN)
+# 2016-09-18    No need to install unless source is newer. (TN)
+# 2016-10-01    Bug fix: of course one needs to check if the files exist
+#               because checking their age! (TN)
 
 emulate -L zsh
 
@@ -12,23 +15,27 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-instopts=(-g staff -m 755)
+# instopts=(-g staff -m 755)
+instopts=(-m 755)
 binroot=/usr/local
+prgname=${0:t}
 
 do_install() {
-    local dest, source
+    local dest source
     local -a sources
-    
+
     dest=$argv[1]
     sources=($argv[2,-1])
-    for source in $sources; do
-        print -- ${0:t}: $source -\> $dest/$name
-        install $instopts $source $dest/${source:r}
+    for src in $sources; do
+        if [[ ! -f $dest/${src:r} || $src -nt $dest/${src:r} ]]; then
+            print -- $prgname: $src -\> $dest/${src:r}
+            install $instopts $src $dest/${src:r}
+        fi
     done
 }
 
 # Programs requiring superuser privileges
-do_install $binroot/sbin modo tsdo l10restore.py
+do_install $binroot/sbin modo qmdo l10nrestore.py
 
 # Programs that don't require superuser privileges
 do_install $binroot/bin podo

@@ -13,8 +13,9 @@ import glob
 
 # Constants
 version = '0.9.91'
-short_opts = 's:v'
-long_opts = ('steps=',                  # -s
+short_opts = 'l:s:v'
+long_opts = ('l10ndir=',                # -l
+             'steps=',                  # -s
              'verbose',                 # -v
              'help')
 
@@ -29,18 +30,25 @@ def die(msg):
     sys.exit(1)
 
 def usage():
-    print('''l10nrestore -- palauta .mo-tiedosto varmuuskopiosta
-
-Palauttaa lokalisoinnin .mo-tiedostot varmuuskopioikseen. HUOM!
-Oletusarvoisesti ei tee mitään, vaan ainoastaan näyttää, mitä
-tapahtuisi: käytä -g-valitsinta muutosten toteuttamiseksi.
+    print('''l10nrestore -- palauta kotoistustiedosto varmuuskopiosta
 
 Käyttö:
+
     l10nrestore [VALITSIMET] TIEDOSTO…
+    
+Palauttaa kotoistustiedostot (GNU gettextin .mo tai Qt:n .qm) 
+varmuuskopioistaan.
 
 Valitsimet:
-    -s N, --steps=N     palautusaskelten määrä
-    --help              näytä tämä ohje ja lopeta.
+
+    -l KANSIO  --l10ndir=KANSIO
+        kansio, josta tiedostoja etsitään (oletus nykykansio)
+    
+    -s N  --steps=N     
+        palautusaskelten määrä
+    
+    --help              
+        näytä tämä ohje ja lopeta.
 ''')
 
 def l10n_restore(l10ndir, l10nfile, steps=1, verbose=False):
