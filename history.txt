@@ -26,6 +26,7 @@ modo
 # 2016-09-03    ${var:t} ja ${var:r} vielä pariin paikkaan. (TN)
 # 2016-09-18    Pieniä tyylikorjauksia. (TN)
 # 2016-10-03    Edelleen tyylikorjauksia. (TN)
+# 2017-01-05    Pieniä muutoksia. (TN)
 
 l10nrestore.py (previously morestore.py)
 
@@ -45,6 +46,7 @@ qmdo (aik. tsdo)
 # 2016-09-24    Vaihdettiin nimeksi qmdo (koska myös modo sisältää kohteen, ei
 #               lähteen tiedostopäätteen!). (TN)
 # 2016-10-03    modon tyyliset muutokset. (TN)
+# 2017-01-05    Bugikorjaus sekä tyylimuutoksia. (TN)
 
 mgamodo
 

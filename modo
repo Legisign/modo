@@ -6,8 +6,11 @@
 
 emulate -L zsh
 
+local dest instopts modotemp mofile pofile
+local -a pofiles
+
 # Vakiot
-hash -d modotemp=/tmp/$(whoami)
+modotemp=/tmp/$(whoami)
 instopts=(--backup=numbered -o root -g root -m 444)
 
 # Tarvitaan msgfmt
@@ -35,7 +38,6 @@ if [[ ! -d $dest ]]; then
 fi
 
 # Kerätään lähdetiedostot
-typeset -a pofiles
 if [[ $# -gt 0 ]]; then
     pofiles=($@)
 else
@@ -50,27 +52,26 @@ if [[ ${#pofiles} -eq 0 ]]; then
 fi
 
 # Asetetaan väliaikaiskansio
-if [[ ! -d ~modotemp ]]; then
-    if ! mkdir ~modotemp > /dev/null 2>&1; then
+if [[ ! -d $modotemp ]]; then
+    if ! mkdir $modotemp > /dev/null 2>&1; then
         print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
         exit 3
     fi
 # Tyhjennetään kansio .mo-tiedostoista
-elif ls -1 ~modotemp | grep -q "\.mo\$"; then
-    rm ~modotemp/*.mo
+elif ls -1 $modotemp | grep -q "\.mo\$"; then
+    rm $modotemp/*.mo
 fi
 
 # Käännetään lähdetiedostot
 for pofile in $pofiles; do
-    poname=${pofile:t}
-    mofile=~modotemp/${poname:r}.mo
-    print -- ${0:t}: Käännetään $poname...
+    mofile=$modotemp/${pofile:t:r}.mo
+    print -- ${0:t}: Käännetään ${pofile:t}...
     msgfmt -o $mofile $pofile
 done
 
 # Asennetaan kohdetiedostot
-if ls -1 ~modotemp | grep -q "\.mo\$"; then
-    for mofile in ~modotemp/*.mo(.); do
+if ls -1 $modotemp | grep -q "\.mo\$"; then
+    for mofile in $modotemp/*.mo(.); do
         print -- ${0:t}: Kopioidaan $mofile -\> $dest...
         sudo install $instopts $mofile $dest && rm $mofile
     done

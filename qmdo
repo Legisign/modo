@@ -5,16 +5,19 @@
 # Muunnelma modo-skriptistä Qt:n käännösjärjestelmää varten. Kääntää
 # muuttuneet .ts-tiedostot .qm-tiedostoiksi ja siirtää ne paikalleen.
 #
-# 2016-10-03    modon tyyliset muutokset. (TN)
+# 2017-01-05    Bugikorjaus sekä tyylimuutoksia. (TN)
 
 emulate -L zsh
 
+local dest qmdotemp qmfile tsfile
+local -a instopts tsfiles
+
 # Vakiot
-hash -d qmdotemp=/tmp/$(whoami)
-instopts=(--backup=numbered -o root -g root -m 444)
+qmdotemp=/tmp/$(whoami)
+instopts=(--backup=numbered -m 444)
 
 # Tarvitaan lrelease
-if [[ -z "$(whence lrelease)" ]]; then
+if [[ -z $(whence lrelease) ]]; then
     print -- ${0:t}: asenna ensin qt4-dev-tools 1>&2
     exit 1
 fi
@@ -29,7 +32,6 @@ else
 fi
 
 # Kerätään lähdetiedostot
-typeset -a tsfiles
 if [[ $# -gt 0 ]]; then
     tsfiles=($@)
 else
@@ -44,26 +46,25 @@ if [[ ${#tsfiles} -eq 0 ]]; then
 fi
 
 # Asetetaan väliaikaiskansio
-if [[ ! -d ~qmdotemp ]]; then
-    if ! mkdir ~qmdotemp > /dev/null 2>&1; then
+if [[ ! -d $qmdotemp ]]; then
+    if ! mkdir $qmdotemp > /dev/null 2>&1; then
         print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
         exit 3
     fi
-elif ls -1 ~qmdotemp | grep -q "\.qm\$"; then
-    rm $modotemp/*.qm
+elif ls -1 $qmdotemp | grep -q "\.qm\$"; then
+    rm $qmdotemp/*.qm
 fi
 
 # Käännetään lähdetiedostot
 for tsfile in $tsfiles; do
-    tsname=${tsfile:t}
-    qmfile=~qmdotemp/${tsname:r}.qm
-    print -- ${0:t}: Käännetään $tsname...
+    qmfile=$qmdotemp/${tsfile:t:r}.qm
+    print -- ${0:t}: Käännetään ${tsfile:t}...
 
     # Asennetaan kohdetiedosto
     if lrelease $tsfile -qm $qmfile > /dev/null 2>&1; then
-        print -- ${0:t}: Kopioidaan $qmfile -\> $dest...
+        print -- ${0:t}: Kopioidaan ${qmfile:t} -\> $dest...
         sudo install $instopts $qmfile $dest && rm $qmfile
     else
-        print -- ${0:t}: Käännösvirhe: "$tsfile"\! 1>&2
+        print -- ${0:t}: Käännösvirhe: "${tsfile:t}"\! 1>&2
     fi
 done
