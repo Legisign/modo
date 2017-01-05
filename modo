@@ -2,7 +2,7 @@
 #
 # modo -- käännä ja asenna Gettextin käännöstiedostot
 #
-# 2016-10-03    Edelleen tyylikorjauksia. (TN)
+# 2017-01-05    Pieniä muutoksia. (TN)
 
 emulate -L zsh
 
