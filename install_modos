@@ -6,17 +6,25 @@
 # 2016-09-17    podo added. do_install function. (TN)
 # 2016-09-18    No need to install unless source is newer. (TN)
 # 2016-10-01    Bug fix: of course one needs to check if the files exist
-#               because checking their age! (TN)
+#               before checking their age! (TN)
+# 2017-01-30    Added $localgroup handling. (TN)
 
 emulate -L zsh
 
+local binroot instopts localgroup prgname
+
 if [[ $EUID -ne 0 ]]; then
-    print -- ${0:t}: Ei onnistu ilman sudoa\! 1>&2
+    print -- ${0:t}: Ei onnistu sudotta\! 1>&2
     exit 1
 fi
 
-# instopts=(-g staff -m 755)
-instopts=(-m 755)
+# Which /usr/local group should we be using?
+[[ grep -q staff /etc/group ]] && localgroup=staff
+[[ grep -q wheel /etc/group ]] && localgroup=wheel
+[[ -z $localgroup ]] && localgroup=root
+
+# Constants
+instopts=(-g $localgroup -m 755)
 binroot=/usr/local
 prgname=${0:t}
 
