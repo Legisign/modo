@@ -8,6 +8,8 @@
 # 2016-10-01    Bug fix: of course one needs to check if the files exist
 #               before checking their age! (TN)
 # 2017-01-30    Added $localgroup handling. (TN)
+# 2017-02-17    Bug fix. (TN)
+# 2017-03-07    Getting rid of csh-like syntax. (TN)
 
 emulate -L zsh
 
@@ -19,21 +21,21 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Which /usr/local group should we be using?
-[[ grep -q staff /etc/group ]] && localgroup=staff
-[[ grep -q wheel /etc/group ]] && localgroup=wheel
-[[ -z $localgroup ]] && localgroup=root
+grep -q staff /etc/group && localgroup=staff
+grep -q wheel /etc/group && localgroup=wheel
+: ${localgroup:=root}
 
-# Constants
+# Settings
 instopts=(-g $localgroup -m 755)
 binroot=/usr/local
 prgname=${0:t}
 
 do_install() {
-    local dest source
+    local dest src
     local -a sources
 
-    dest=$argv[1]
-    sources=($argv[2,-1])
+    sources=$@[1,-2]
+    dest=$@[-1]
     for src in $sources; do
         if [[ ! -f $dest/${src:r} || $src -nt $dest/${src:r} ]]; then
             print -- $prgname: $src -\> $dest/${src:r}
@@ -43,7 +45,7 @@ do_install() {
 }
 
 # Programs requiring superuser privileges
-do_install $binroot/sbin modo qmdo l10nrestore.py
+do_install modo qmdo l10nrestore.py $binroot/sbin
 
 # Programs that don't require superuser privileges
-do_install $binroot/bin podo
+do_install podo $binroot/bin
