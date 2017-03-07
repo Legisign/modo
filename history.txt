@@ -59,3 +59,14 @@ podo
 # 2016-04-23    Luotu modo-skriptille joskus tarvittava vastinpari. (TN)
 # 2016-09-16    Pieniä tyylikorjauksia. (TN)
 # 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
+
+install_modos
+
+# 2016-09-13    Ready. (TN)
+# 2016-09-17    podo added. do_install function. (TN)
+# 2016-09-18    No need to install unless source is newer. (TN)
+# 2016-10-01    Bug fix: of course one needs to check if the files exist
+# 2017-01-30    Added $localgroup handling. (TN)
+# 2017-02-17    Bug fix. (TN)
+# 2017-03-07    Getting rid of csh-like syntax. (TN)
+# 2017-03-07    Simplifications. (TN)
