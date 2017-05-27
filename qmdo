@@ -6,8 +6,18 @@
 # muuttuneet .ts-tiedostot .qm-tiedostoiksi ja siirtää ne paikalleen.
 #
 # 2017-01-05    Bugikorjaus sekä tyylimuutoksia. (TN)
+# 2017-05-27    (Toimiva) lrelease on jossain vaiheessa siirtynyt toiseen
+#               pakettiin: qt4-linguist-tools. /usr/bin/lrelease voi kuitenkin
+#               muutenkin olla olemassa toimimattomana symlinkkinä, joten
+#               pelkkä $(whence lrelease) ei riitä.
 
 emulate -L zsh
+
+# Tarvitaan lrelease
+if [[ -z $(lrelease -version 2> /dev/null) ]]; then
+    print -- ${0:t}: asenna ensin qt4-linguist-tools 1>&2
+    exit 1
+fi
 
 local dest qmdotemp qmfile tsfile
 local -a instopts tsfiles
@@ -15,12 +25,6 @@ local -a instopts tsfiles
 # Vakiot
 qmdotemp=/tmp/$(whoami)
 instopts=(--backup=numbered -m 444)
-
-# Tarvitaan lrelease
-if [[ -z $(whence lrelease) ]]; then
-    print -- ${0:t}: asenna ensin qt4-dev-tools 1>&2
-    exit 1
-fi
 
 # Asetetaan kohdekansio (qmdo.def on AINA annettava)
 if [[ ! -e qmdo.def ]]; then
