@@ -36,7 +36,7 @@ do_install() {
     for src in $@[1,-2]; do
         if [[ ! -f $dest/${src:r} || $src -nt $dest/${src:r} ]]; then
             print -- $src -\> $dest/${src:r}
-            # install $instopts $src $dest/${src:r}
+            install $instopts $src $dest/${src:r}
         fi
     done
 }
