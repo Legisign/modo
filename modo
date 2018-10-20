@@ -2,7 +2,7 @@
 #
 # modo -- käännä ja asenna Gettextin käännöstiedostot
 #
-# 2017-01-05    Pieniä muutoksia. (TN)
+# 2018-08-24    Edelleen pieniä muutoksia. (TN)
 
 emulate -L zsh
 
@@ -38,7 +38,7 @@ if [[ ! -d $dest ]]; then
 fi
 
 # Kerätään lähdetiedostot
-if [[ $# -gt 0 ]]; then
+if (( $# > 0 )); then
     pofiles=($@)
 else
     for pofile in *.po(.N); do
@@ -46,7 +46,7 @@ else
         [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles=($pofiles $pofile)
     done
 fi
-if [[ ${#pofiles} -eq 0 ]]; then
+if (( ${#pofiles} == 0 )); then
     print -- ${0:t}: Ei lähdetiedostoja, lopetetaan 1>&2
     exit 0
 fi

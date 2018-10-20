@@ -27,6 +27,7 @@ modo
 # 2016-09-18    Pieniä tyylikorjauksia. (TN)
 # 2016-10-03    Edelleen tyylikorjauksia. (TN)
 # 2017-01-05    Pieniä muutoksia. (TN)
+# 2018-08-24    Edelleen pieniä muutoksia. (TN)
 
 l10nrestore.py (previously morestore.py)
 
