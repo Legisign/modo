@@ -60,6 +60,7 @@ podo
 # 2016-04-23    Luotu modo-skriptille joskus tarvittava vastinpari. (TN)
 # 2016-09-16    Pieniä tyylikorjauksia. (TN)
 # 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
+# 2019-02-21    $argv > $@. (TN)
 
 install_modos
 
@@ -71,3 +72,4 @@ install_modos
 # 2017-02-17    Bug fix. (TN)
 # 2017-03-07    Getting rid of csh-like syntax. (TN)
 # 2017-03-07    Simplifications. (TN)
+

@@ -5,6 +5,7 @@
 # Käyttö: podo motsto ... kohdekansio
 #
 # 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
+# 2019-02-21    $argv > $@. (TN)
 
 emulate -L zsh
 
@@ -14,14 +15,14 @@ if [[ -z $(whence msgfmt) ]]; then
     exit 1
 fi
 
-if [[ $# -lt 2 ]]; then
+if (( $# < 2 )); then
     print -- ${0:t}: käyttö: ${0:t} motsto... kohdekansio 1>&2
     exit 2
 fi
 
 # Selvitä parametrit
-mofiles=$argv[1,-2]
-dest=$argv[$#]
+mofiles=$@[1,-2]
+dest=$@[$#]
 if [[ ! -d $dest ]]; then
     print -- ${0:t}: $dest ei ole \(kohde\)kansio 1>&2
     exit 2
