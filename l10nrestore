@@ -22,8 +22,8 @@ if (( $# == 0 )); then
 fi
 
 for f in $*; do
-    if [[ $f != *.mo ]]; then
-        print -- ${prg}: "$f": ei .mo-tiedosto, ohitetaan 1>&2
+    if [[ $f != *.(mo|qm) ]]; then
+        print -- ${prg}: "$f": ei .mo- tai .qm-tiedosto, ohitetaan 1>&2
         continue
     fi
     backups=( ${f}.~<->~ )
