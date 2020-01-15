@@ -12,6 +12,7 @@
 # 2017-03-07    Getting rid of csh-like syntax. (TN)
 # 2017-03-07    Simplifications. (TN)
 # 2017-03-30    Bug fix. (TN)
+# 2020-01-15    l10nrestore is now a zsh script. (TN)
 
 emulate -L zsh
 
@@ -42,7 +43,7 @@ do_install() {
 }
 
 # Programs requiring superuser privileges
-do_install modo qmdo l10nrestore.py $binroot/sbin
+do_install modo qmdo l10nrestore $binroot/sbin
 
 # Programs that don't require superuser privileges
 do_install podo $binroot/bin
