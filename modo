@@ -1,33 +1,27 @@
 #!/bin/zsh
 #
-# modo -- käännä ja asenna Gettextin käännöstiedostot
+# modo -- compile and install Gettext localization files
 #
-# 2018-08-24    Edelleen pieniä muutoksia. (TN)
-# 2020-08-12    Tiedostot, joiden nimi päättyy _qt, käännetään Plasmassa
-#               nykyisin .qm-tiedostoiksi .ts-välitiedoston kautta. Lisätään
-#               näiden käsittely. (TN)
-# 2020-10-24    Lisätty valitsin -d, --destination, jotta kohdekansion voi
-#               asettaa lennossa. (TN)
-# 2021-03-22    Korjattiin virheitä .qm:iksi käännettävien haarassa. lconvert
-#               nähtävästi vaatii -target-language-vivun. (TN)
+# 2021-03-22    Bug fixes in the `.qm` target branch: `lconvert` requires
+#               `-target-language`.
 
 emulate -L zsh
 
 declare dest modotemp destfile pofile tsfile
 declare -a convopts instopts pofiles destfiles switches
 
-# Vakiot
+# Constants
 convopts=(-target-language fi)
 modotemp=/tmp/$(whoami)
 instopts=(--backup=numbered -o root -g root -m 444)
 
-# Tarvitaan msgfmt
+# msgfmt required
 if [[ -z $(whence msgfmt) ]]; then
     print -- ${0:t}: VIRHE: asenna ensin gettext 1>&2
     exit 1
 fi
 
-# Yritetään ensin lukea kohdekansio komentoriviltä
+# First try to read the target directory from the command line
 zparseopts -D -a switches d:: -destination::
 if (( $#switches > 0 )); then
     if [[ ${switches[$#switches]} == -d* ]]; then
@@ -35,7 +29,7 @@ if (( $#switches > 0 )); then
     elif [[ ${switches[$#switches]} == --destination=* ]]; then
         dest=${switches[$#switches]#--destination=}
     fi
-# Yritetään lukea modo.def tai turvaudutaan oletukseen
+# Otherwise, read `modo.def` or use the default target
 else
     if [[ -r modo.def ]]; then
         dest=$(<modo.def)
@@ -47,7 +41,7 @@ else
 fi
 print -- ${0:t}: Kohdekansio: "$dest"
 
-# Varmistetaan kohdekansion olemassaolo
+# Make sure the target directory exists
 if [[ ! -d $dest ]]; then
     print -- ${0:t}: ...kohdekansio puuttuu, yritetään luoda
     if ! sudo mkdir -p $dest; then
@@ -57,7 +51,7 @@ if [[ ! -d $dest ]]; then
     sudo chmod -R 755 $dest
 fi
 
-# Kerätään lähdetiedostot
+# Collect source files
 if (( $# > 0 )); then
     pofiles=($@)
 else
@@ -71,18 +65,18 @@ if (( $#pofiles == 0 )); then
     exit 0
 fi
 
-# Asetetaan väliaikaiskansio
+# Set temp directory
 if [[ ! -d $modotemp ]]; then
     if ! mkdir $modotemp > /dev/null 2>&1; then
         print -- ${0:t}: VIRHE: väliaikaiskansiota ei voitu luoda 1>&2
         exit 3
     fi
-# Tyhjennetään kansio .mo-tiedostoista
+# Remove left-over `.mo` files
 elif ls -1 $modotemp | grep -q "\.mo\$"; then
     rm $modotemp/*.mo
 fi
 
-# Käännetään lähdetiedostot
+# Compile source files
 destfiles=()
 for pofile in $pofiles; do
     if [[ ${pofile:t:r} != *_qt ]]; then
@@ -104,7 +98,7 @@ for pofile in $pofiles; do
     fi
 done
 
-# Asennetaan kohdetiedostot
+# Install target files
 if (( $#destfiles > 0 )); then
     for mofile in $destfiles; do
         print -- ${0:t}: Kopioidaan $mofile -\> $dest...

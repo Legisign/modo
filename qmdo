@@ -1,27 +1,21 @@
 #!/usr/bin/zsh
 #
-# qmdo -- .ts-tiedoston asennus .qm-tiedostoksi
+# qmdo -- compile and install `.qm` files
 #
-# Muunnelma modo-skriptistä Qt:n käännösjärjestelmää varten. Kääntää
-# muuttuneet .ts-tiedostot .qm-tiedostoiksi ja siirtää ne paikalleen.
+# A variant of `modo` for the Qt localization system. Compiles and
+# installs `.ts` files.
 #
-# 2017-01-05    Bugikorjaus sekä tyylimuutoksia. (TN)
-# 2017-05-27    (Toimiva) lrelease on jossain vaiheessa siirtynyt toiseen
-#               pakettiin: qt4-linguist-tools. /usr/bin/lrelease voi kuitenkin
-#               muutenkin olla olemassa toimimattomana symlinkkinä, joten
-#               pelkkä $(whence lrelease) ei riitä.
-# 2020-01-17    Qt4 päivittynyt (jo aikaa sitten) Qt5:ksi. Lisäksi
-#               tyylimuutoksia.
+# 2020-01-17    Qt4 to Qt5; stylistic changes.
 
 emulate -L zsh
 
-# Tarvitaan lrelease
+# `lrelease` required
 if [[ -z $(whence lrelease) ]]; then
     print -- ${0:t}: asenna ensin libqt5-linguist 1>&2
     exit 1
 fi
 
-# Kysytään pääkäyttäjäoikeuksia tarpeen mukaan, ei liioitella
+# Superuser privileges asked when required
 if (( $UID == 0 )); then
     print -- ${0:t}: älä aja tätä ohjelmaa kokonaan pääkäyttäjänä 1>&2
     exit 1
@@ -30,11 +24,11 @@ fi
 local dest temp qmfile tsfile
 local -a instopts tsfiles
 
-# Vakiot
+# Constants
 temp=/tmp/$(whoami)
 instopts=(--backup=numbered -m 444)
 
-# Asetetaan kohdekansio (qmdo.def on AINA annettava)
+# Set the target dir (ALWAYS requires `qmdo.def`)
 if [[ ! -e qmdo.def ]]; then
     print -- ${0:t}: kansiossa ei ole qmdo.def-tiedostoa 1>&2
     exit 1
@@ -47,16 +41,12 @@ else
     fi
 fi
 
-# Lähdetiedostot joko annetaan parametreina…
+# Parse the source files
 if (( $# > 0 )); then
     tsfiles=($@)
-# …tai kerätään kansiosta määräehtojen mukaan
 else
     for tsfile in *.ts(.N); do
         qmfile=$dest/${tsfile:t:r}.mo
-        # Lisätään listaan, jos
-        #   a) kohdetiedosto puuttuu tai
-        #   b) lähde on kohdetta uudempi
         [[ ! -f $qmfile || $tsfile -nt $qmfile ]] && tsfiles=($tsfiles $tsfile)
     done
 fi
@@ -65,7 +55,7 @@ if (( $#tsfiles == 0  )); then
     exit 0
 fi
 
-# Asetetaan väliaikaiskansio
+# Set the temp dir
 if [[ ! -d $temp ]]; then
     if ! mkdir $temp > /dev/null 2>&1; then
         print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
@@ -75,12 +65,12 @@ elif ls -1 $temp | grep -q "\.qm\$"; then
     rm $temp/*.qm
 fi
 
-# Käännetään lähdetiedostot
+# Compile source files
 for tsfile in $tsfiles; do
     qmfile=$temp/${tsfile:t:r}.qm
     print -- ${0:t}: Käännetään ${tsfile:t}...
 
-    # Asennetaan kohdetiedosto
+    # Install target files
     if lrelease $tsfile -qm $qmfile > /dev/null 2>&1; then
         print -- ${0:t}: Kopioidaan ${qmfile:t} -\> $dest...
         sudo install $instopts $qmfile $dest && rm $qmfile

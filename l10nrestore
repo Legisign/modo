@@ -2,8 +2,7 @@
 #
 # l10nrestore -- restore an .mo or a .qm file from a numbered backup
 #
-# 2016-09-13    Initial Python version. (TN)
-# 2020-01-15    Conversion to zsh. (TN)
+# 2021-07-19    Long switches (including new -h, --help).
 
 emulate -L zsh
 
@@ -11,24 +10,29 @@ declare -a backups
 declare f dryrun prg stepvar verbose
 integer point steps
 
-zparseopts -D n=dryrun s:=stepvar v=verbose
-(( $#stepvar > 1 )) && steps=${stepvar[2]} || steps=1
-
 if (( $# == 0 )); then
-    cat <<EOF
+    print -- ${0:t}: käyttö: ${0:t} \[valitsimet\] tiedosto... \(tai kokeile --help\) 1>&2
+    exit 0
+fi
+
+zparseopts -E -D -help=usage n=dryrun -dry-run=dryrun s:=stepvar -steps:=stepvar v=verbose -verbose=verbose
+if [[ -n $usage ]]; then
+    <<EOF
 ${0:t} -- palauta .mo- tai .qm-tiedosto varmuuskopiosta
 
 Käyttö:
     ${0:t} [ -n -s N -v ] tiedosto...
 
 Valitsimet:
-    -n    näytä mitä tapahtuisi tekemättä mitään
-    -s N  palaa takaisin N askelta (oletus: 1)
-    -v    näytä yksityiskohtaisempaa tietoa
+    -h, --help      näytä tämä ohje ja lopeta
+    -n, --dry-run   näytä mitä tapahtuisi tekemättä mitään
+    -sN, --steps=N  palaa takaisin N askelta (oletus: 1)
+    -v, --verbose   näytä yksityiskohtaisempaa tietoa
 
 EOF
-    exit 1
+    exit 0
 fi
+steps=${${stepvar[2]##=}:=1}
 
 for f in $*; do
     if [[ $f != *.(mo|qm) ]]; then

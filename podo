@@ -1,19 +1,17 @@
 #!/usr/bin/zsh
 #
-# podo -- luo .mo-tiedostosta .po-tiedosto muokkausta varten
+# podo -- create `.po` from `.mo` for editing
 #
-# Käyttö: podo motsto ... kohdekansio
+# Usage: podo mofile ... target-dir
 #
-# 2016-09-17    Komentoriviparametrien idea uusiksi. (TN)
-# 2019-02-21    $argv > $@. (TN)
-# 2020-10-28    Korjattu mahdollisuus antaa useampi lähde. (TN)
+# 2021-07-19    Using `shift` to discard the first element in `mofiles`.
 
 emulate -L zsh
 
 local dest mofile
 local -a mofiles
 
-# Tarvitaan msgfmt
+# msgfmt required
 if [[ -z $(whence msgfmt) ]]; then
     print -- ${0:t}: Asenna ensin gettext 1>&2
     exit 1
@@ -24,15 +22,15 @@ if (( $# < 2 )); then
     exit 2
 fi
 
-# Selvitä parametrit
-mofiles=($@[1,-2])
+# Parse parameters
+shift mofiles
 dest=$@[$#]
 if [[ ! -d $dest ]]; then
     print -- ${0:t}: $dest ei ole \(kohde\)kansio 1>&2
     exit 2
 fi
 
-# Käännä tiedostot
+# Compile files
 for mofile in $mofiles; do
     print -- ${0:t}: "$mofile" -\> "$dest"
     if [[ ! -r $mofile || $mofile != *.mo ]]; then
