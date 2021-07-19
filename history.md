@@ -55,19 +55,20 @@
 
 * 2021-07-19    Using `shift` to discard the first element in `mofiles`.
 * 2020-10-28    Allow multiple sources.
-* 2019-02-21    $argv > $@.
+* 2019-02-21    `$argv` changed to `$@`.
 * 2016-09-17    New handling of command line parameters.
 * 2016-09-16    Small stylistic changes.
 * 2016-04-23    Created to complement `modo`.
 
 ## `install_modos`
 
+* 2020-01-15    `l10nrestore` is now a zsh script.
 * 2017-03-07    Simplifications.
 * 2017-03-07    Getting rid of csh-like syntax.
 * 2017-02-17    Bug fix.
-* 2017-01-30    Added $localgroup handling.
+* 2017-01-30    Added `$localgroup` handling.
 * 2016-10-01    Bug fix: of course one needs to check if the files exist
 * 2016-09-18    No need to install unless source is newer.
-* 2016-09-17    podo added. do_install function.
+* 2016-09-17    `podo` added. `do_install` function.
 * 2016-09-13    Ready.
 
