@@ -1,37 +1,57 @@
-#!/usr/bin/zsh
+#!/bin/zsh
 #
 # modo -- käännä ja asenna Gettextin käännöstiedostot
 #
 # 2018-08-24    Edelleen pieniä muutoksia. (TN)
+# 2020-08-12    Tiedostot, joiden nimi päättyy _qt, käännetään Plasmassa
+#               nykyisin .qm-tiedostoiksi .ts-välitiedoston kautta. Lisätään
+#               näiden käsittely. (TN)
+# 2020-10-24    Lisätty valitsin -d, --destination, jotta kohdekansion voi
+#               asettaa lennossa. (TN)
+# 2021-03-22    Korjattiin virheitä .qm:iksi käännettävien haarassa. lconvert
+#               nähtävästi vaatii -target-language-vivun. (TN)
 
 emulate -L zsh
 
-local dest instopts modotemp mofile pofile
-local -a pofiles
+declare dest modotemp destfile pofile tsfile
+declare -a convopts instopts pofiles destfiles switches
 
 # Vakiot
+convopts=(-target-language fi)
 modotemp=/tmp/$(whoami)
 instopts=(--backup=numbered -o root -g root -m 444)
 
 # Tarvitaan msgfmt
 if [[ -z $(whence msgfmt) ]]; then
-    print -- ${0:t}: Asenna ensin gettext 1>&2
+    print -- ${0:t}: VIRHE: asenna ensin gettext 1>&2
     exit 1
 fi
 
-# Asetetaan kohdekansio
-if [[ -r modo.def ]]; then
-    dest=$(<modo.def)
-elif lsb_release -sd 2> /dev/null | grep -q Ubuntu; then
-    dest=/usr/share/locale-langpack/fi/LC_MESSAGES
+# Yritetään ensin lukea kohdekansio komentoriviltä
+zparseopts -D -a switches d:: -destination::
+if (( $#switches > 0 )); then
+    if [[ ${switches[$#switches]} == -d* ]]; then
+        dest=${switches[$#switches]#-d}
+    elif [[ ${switches[$#switches]} == --destination=* ]]; then
+        dest=${switches[$#switches]#--destination=}
+    fi
+# Yritetään lukea modo.def tai turvaudutaan oletukseen
 else
-    dest=/usr/share/locale/fi/LC_MESSAGES
+    if [[ -r modo.def ]]; then
+        dest=$(<modo.def)
+    elif lsb_release -sd 2> /dev/null | grep -q Ubuntu; then
+        dest=/usr/share/locale-langpack/fi/LC_MESSAGES
+    else
+        dest=/usr/share/locale/fi/LC_MESSAGES
+    fi
 fi
 print -- ${0:t}: Kohdekansio: "$dest"
+
+# Varmistetaan kohdekansion olemassaolo
 if [[ ! -d $dest ]]; then
     print -- ${0:t}: ...kohdekansio puuttuu, yritetään luoda
     if ! sudo mkdir -p $dest; then
-        print -- ${0:t}: ...epäonnistui\! 1>&2
+        print -- ${0:t}: VIRHE: kansion luominen epäonnistui 1>&2
         exit 2
     fi
     sudo chmod -R 755 $dest
@@ -46,15 +66,15 @@ else
         [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles=($pofiles $pofile)
     done
 fi
-if (( ${#pofiles} == 0 )); then
-    print -- ${0:t}: Ei lähdetiedostoja, lopetetaan 1>&2
+if (( $#pofiles == 0 )); then
+    print -- ${0:t}: VIRHE: ei lähdetiedostoja, lopetetaan 1>&2
     exit 0
 fi
 
 # Asetetaan väliaikaiskansio
 if [[ ! -d $modotemp ]]; then
     if ! mkdir $modotemp > /dev/null 2>&1; then
-        print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
+        print -- ${0:t}: VIRHE: väliaikaiskansiota ei voitu luoda 1>&2
         exit 3
     fi
 # Tyhjennetään kansio .mo-tiedostoista
@@ -63,18 +83,33 @@ elif ls -1 $modotemp | grep -q "\.mo\$"; then
 fi
 
 # Käännetään lähdetiedostot
+destfiles=()
 for pofile in $pofiles; do
-    mofile=$modotemp/${pofile:t:r}.mo
-    print -- ${0:t}: Käännetään ${pofile:t}...
-    msgfmt -o $mofile $pofile
+    if [[ ${pofile:t:r} != *_qt ]]; then
+        mofile=$modotemp/${pofile:t:r}.mo
+        print -- ${0:t}: Käännetään ${pofile:t}...
+        msgfmt -o $mofile $pofile && destfiles+=($mofile)
+    else
+        tsfile=$modotemp/${pofile:t:r}.ts
+        mofile=$modotemp/${pofile:t:r}.qm
+        print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
+        lconvert $convopts -i $pofile -o $tsfile
+        if (( $? == 0 )); then
+            print -- ${0:t}: Käännetään ${tsfile:t}...
+            lrelease $tsfile -qm $mofile > /dev/null 2>&1 && destfiles+=($mofile)
+        else
+            print -- ${0:t}: VIRHE: muunnos TS-tiedostoksi ei onnistunut 1>&2
+            continue
+        fi
+    fi
 done
 
 # Asennetaan kohdetiedostot
-if ls -1 $modotemp | grep -q "\.mo\$"; then
-    for mofile in $modotemp/*.mo(.); do
+if (( $#destfiles > 0 )); then
+    for mofile in $destfiles; do
         print -- ${0:t}: Kopioidaan $mofile -\> $dest...
         sudo install $instopts $mofile $dest && rm $mofile
     done
 else
-    print -- ${0:t}: Ei mitään asennettavaa 1>&2
+    print -- ${0:t}: VIRHE: ei mitään asennettavaa 1>&2
 fi

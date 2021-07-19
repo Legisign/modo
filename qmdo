@@ -10,20 +10,28 @@
 #               pakettiin: qt4-linguist-tools. /usr/bin/lrelease voi kuitenkin
 #               muutenkin olla olemassa toimimattomana symlinkkinä, joten
 #               pelkkä $(whence lrelease) ei riitä.
+# 2020-01-17    Qt4 päivittynyt (jo aikaa sitten) Qt5:ksi. Lisäksi
+#               tyylimuutoksia.
 
 emulate -L zsh
 
 # Tarvitaan lrelease
-if [[ -z $(lrelease -version 2> /dev/null) ]]; then
-    print -- ${0:t}: asenna ensin qt4-linguist-tools 1>&2
+if [[ -z $(whence lrelease) ]]; then
+    print -- ${0:t}: asenna ensin libqt5-linguist 1>&2
     exit 1
 fi
 
-local dest qmdotemp qmfile tsfile
+# Kysytään pääkäyttäjäoikeuksia tarpeen mukaan, ei liioitella
+if (( $UID == 0 )); then
+    print -- ${0:t}: älä aja tätä ohjelmaa kokonaan pääkäyttäjänä 1>&2
+    exit 1
+fi
+
+local dest temp qmfile tsfile
 local -a instopts tsfiles
 
 # Vakiot
-qmdotemp=/tmp/$(whoami)
+temp=/tmp/$(whoami)
 instopts=(--backup=numbered -m 444)
 
 # Asetetaan kohdekansio (qmdo.def on AINA annettava)
@@ -33,35 +41,43 @@ if [[ ! -e qmdo.def ]]; then
 else
     dest=$(<qmdo.def)
     print -- ${0:t}: kohdehakemisto "$dest"
+    if [[ ! -d $dest ]]; then
+        print -- ${0:t}: kohdehakemisto puuttuu\! 1>&2
+        exit 1
+    fi
 fi
 
-# Kerätään lähdetiedostot
-if [[ $# -gt 0 ]]; then
+# Lähdetiedostot joko annetaan parametreina…
+if (( $# > 0 )); then
     tsfiles=($@)
+# …tai kerätään kansiosta määräehtojen mukaan
 else
     for tsfile in *.ts(.N); do
         qmfile=$dest/${tsfile:t:r}.mo
+        # Lisätään listaan, jos
+        #   a) kohdetiedosto puuttuu tai
+        #   b) lähde on kohdetta uudempi
         [[ ! -f $qmfile || $tsfile -nt $qmfile ]] && tsfiles=($tsfiles $tsfile)
     done
 fi
-if [[ ${#tsfiles} -eq 0 ]]; then
+if (( $#tsfiles == 0  )); then
     print -- ${0:t}: Ei lähdetiedostoja 1>&2
     exit 0
 fi
 
 # Asetetaan väliaikaiskansio
-if [[ ! -d $qmdotemp ]]; then
-    if ! mkdir $qmdotemp > /dev/null 2>&1; then
+if [[ ! -d $temp ]]; then
+    if ! mkdir $temp > /dev/null 2>&1; then
         print -- ${0:t}: Väliaikaiskansion luonti ei onnistu 1>&2
         exit 3
     fi
-elif ls -1 $qmdotemp | grep -q "\.qm\$"; then
-    rm $qmdotemp/*.qm
+elif ls -1 $temp | grep -q "\.qm\$"; then
+    rm $temp/*.qm
 fi
 
 # Käännetään lähdetiedostot
 for tsfile in $tsfiles; do
-    qmfile=$qmdotemp/${tsfile:t:r}.qm
+    qmfile=$temp/${tsfile:t:r}.qm
     print -- ${0:t}: Käännetään ${tsfile:t}...
 
     # Asennetaan kohdetiedosto

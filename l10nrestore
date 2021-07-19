@@ -8,33 +8,42 @@
 emulate -L zsh
 
 declare -a backups
-local f dryrun prg stepvar verbose
+declare f dryrun prg stepvar verbose
 integer point steps
-
-prg=${0:t}
 
 zparseopts -D n=dryrun s:=stepvar v=verbose
 (( $#stepvar > 1 )) && steps=${stepvar[2]} || steps=1
 
 if (( $# == 0 )); then
-    print -- ${prg}: anna tiedostonimet 1>&2
-    return 1
+    cat <<EOF
+${0:t} -- palauta .mo- tai .qm-tiedosto varmuuskopiosta
+
+Käyttö:
+    ${0:t} [ -n -s N -v ] tiedosto...
+
+Valitsimet:
+    -n    näytä mitä tapahtuisi tekemättä mitään
+    -s N  palaa takaisin N askelta (oletus: 1)
+    -v    näytä yksityiskohtaisempaa tietoa
+
+EOF
+    exit 1
 fi
 
 for f in $*; do
     if [[ $f != *.(mo|qm) ]]; then
-        print -- ${prg}: "$f": ei .mo- tai .qm-tiedosto, ohitetaan 1>&2
+        print -- ${0:t}: ei .mo- tai .qm-tiedosto, ohitetaan: $f 1>&2
         continue
     fi
     backups=( ${f}.~<->~ )
     if (( $#backups < steps )); then
-        print -- ${prg}: "$f": enintään $#backups askelta palautettavissa 1>&2
+        print -- ${0:t}: palautettavissa enintään $#backups askelta: $f 1>&2
         continue
     fi
 
     # 1) rename the latest .mo to put it out of the way
     if [[ -e $f.restore ]]; then
-        print -- ${prg}: "$f.restore" on jo olemassa 1>&2
+        print -- ${0:t}: on jo olemassa: $f.restore 1>&2
         continue
     fi
     [[ -n $verbose ]] && print -- 1 :: $f → $f.restore
@@ -47,8 +56,10 @@ for f in $*; do
 
     # 3) remove newer levels
     if (( point < $#backups )); then
-        [[ -n $verbose ]] && print -- 3 :: poistetaan ${f}.~{$(( point + 1 ))..$#backups}~
+        [[ -n $verbose ]] && print -- 3 :: poistetaan ${f}.~{$(( point + 1 ))..$#backups}\~
         [[ -n $dryrun ]] || rm ${f}.~{$(( point + 1 ))..$#backups}~ || return 1
+    elif [[ -n $verbose ]]; then
+        print -- 3 :: \(ei uudempia poistettavia versioita\)
     fi
 
     # 4) remove the restoration backup
