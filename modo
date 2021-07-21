@@ -1,14 +1,41 @@
-#!/bin/zsh
+#!/usr/bin/zsh
 #
 # modo -- compile and install Gettext localization files
 #
-# 2021-03-22    Bug fixes in the `.qm` target branch: `lconvert` requires
-#               `-target-language`.
+# 2021-07-21    Enhanced command line option handling including -h, --help.
 
 emulate -L zsh
 
-declare dest modotemp destfile pofile tsfile
-declare -a convopts instopts pofiles destfiles switches
+declare modotemp dest tdestfile pofile tsfile
+declare -a convopts dest1 destfiles instopts pofiles usage
+
+zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1
+
+if [[ -n $usage ]]; then
+    <<EOF
+${0:t} -- compile and install Gettext localization files
+
+Usage
+    ${0:t} [ options ] pofile...
+
+    Compiles and installs each pofile. The target directory can be set with
+    -d, --destination command line option or in a modo.def file in the current
+    directory. The contents of the file is just the directory path.
+
+    Unless explicitly given, the script tries to guess the target:
+
+    -   on Ubuntu: /usr/share/locale-langpack/LANGCODE/messages
+    -   on other distros: /usr/share/locale/LANGCODE/messages
+
+    LANGCODE is taken from $LANG by discarding the country code and encoding.
+
+Options
+    -d DIR, --destination=DIR   set target directory
+    --help                      show this help and quit
+
+EOF
+    exit 0
+fi
 
 # Constants
 convopts=(-target-language fi)
@@ -21,29 +48,22 @@ if [[ -z $(whence msgfmt) ]]; then
     exit 1
 fi
 
-# First try to read the target directory from the command line
-zparseopts -D -a switches d:: -destination::
-if (( $#switches > 0 )); then
-    if [[ ${switches[$#switches]} == -d* ]]; then
-        dest=${switches[$#switches]#-d}
-    elif [[ ${switches[$#switches]} == --destination=* ]]; then
-        dest=${switches[$#switches]#--destination=}
-    fi
-# Otherwise, read `modo.def` or use the default target
+# Target directory explicitly given on the command line
+if (( $#dest1 > 0 )); then
+    dest=${dest1[-1]##=}
+# If not given, try and read `modo.def`, if readable
+elif [[ -r modo.def ]]; then
+    dest=$(<modo.def)
+elif lsb_release -sd >& /dev/null | grep -iq ubuntu; then
+    dest=/usr/share/locale-langpack/${LANG%%_*}/LC_MESSAGES
 else
-    if [[ -r modo.def ]]; then
-        dest=$(<modo.def)
-    elif lsb_release -sd 2> /dev/null | grep -q Ubuntu; then
-        dest=/usr/share/locale-langpack/fi/LC_MESSAGES
-    else
-        dest=/usr/share/locale/fi/LC_MESSAGES
-    fi
+    dest=/usr/share/locale/${LANG%%_*}/LC_MESSAGES
 fi
 print -- ${0:t}: Kohdekansio: "$dest"
 
 # Make sure the target directory exists
 if [[ ! -d $dest ]]; then
-    print -- ${0:t}: ...kohdekansio puuttuu, yritetään luoda
+    print -- ${0:t}: kohdekansio puuttuu, yritetään luoda
     if ! sudo mkdir -p $dest; then
         print -- ${0:t}: VIRHE: kansion luominen epäonnistui 1>&2
         exit 2
@@ -61,7 +81,7 @@ else
     done
 fi
 if (( $#pofiles == 0 )); then
-    print -- ${0:t}: VIRHE: ei lähdetiedostoja, lopetetaan 1>&2
+    print -- ${0:t}: VIRHE: ei lähdetiedostoja, lopetetaan \(kokeile --help\) 1>&2
     exit 0
 fi
 

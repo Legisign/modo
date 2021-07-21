@@ -2,6 +2,7 @@
 
 ## modo
 
+* 2021-07-21    Enhanced command line handling including `-h`, `--help`.
 * 2021-03-22    Bug fixes in the `.qm` target branch: `lconvert` requires `-target-language`.
 * 2020-10-24    Added `-d`, `--destination` for giving the target dir.
 * 2020-08-12    Files with names ending `_qt` need a intermediate `.ts` file.
@@ -32,6 +33,7 @@
 
 ## `l10nrestore` (previously `morestore`)
 
+* 2021-07-21    Added `-h` which was actually missing.
 * 2021-07-19    Long switches (including new `-h`, `--help`).
 * 2020-01-15    Conversion to zsh.
 * 2016-09-13    Added support for `.qm` files and renamed to `l10nrestore`.
@@ -41,6 +43,7 @@
 
 ## `qmdo` (previously `tsdo`)
 
+* 2021-07-21    Enhanced command line handling including `-h`, `--help`.
 * 2020-01-17    Qt4 to Qt5; stylistic changes.
 * 2017-05-27    `lrelease` can be a symlink, so `$(whence lrelease)` is not enough.
 * 2017-01-05    Bug fix, stylistic changes.
@@ -53,7 +56,7 @@
 
 ## `podo`
 
-* 2021-07-19    Using `shift` to discard the first element in `mofiles`.
+* 2021-07-21    Added `-h`, `--help`. Signals error if used as root.
 * 2020-10-28    Allow multiple sources.
 * 2019-02-21    `$argv` changed to `$@`.
 * 2016-09-17    New handling of command line parameters.

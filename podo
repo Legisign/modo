@@ -1,33 +1,51 @@
 #!/usr/bin/zsh
 #
-# podo -- create `.po` from `.mo` for editing
+# podo -- decompile Gettext localization files
 #
 # Usage: podo mofile ... target-dir
 #
-# 2021-07-19    Using `shift` to discard the first element in `mofiles`.
+# 2021-07-21    Added -h, --help. Signals error if used as root.
 
 emulate -L zsh
 
-local dest mofile
-local -a mofiles
+declare dest mofile
+declare -a mofiles usage
 
-# msgfmt required
-if [[ -z $(whence msgfmt) ]]; then
-    print -- ${0:t}: Asenna ensin gettext 1>&2
+zparseopts -E -D h=usage -help=usage
+
+if [[ -n $usage ]]; then
+    <<EOF
+${0:t} -- decompile Gettext localization files
+
+Usage
+    ${0:t} [ -h | --help | mofile ... target ]
+
+    "target" is a directory where the .po files are copied.
+
+Options
+    -h, --help  show the help and quit
+
+EOF
+    exit 0
+fi
+
+if (( EUID == 0 )); then
+    print -- ${0:t}: älä suorita pääkäyttäjäoikeuksin 1>&2
     exit 1
 fi
 
-if (( $# < 2 )); then
-    print -- ${0:t}: käyttö: ${0:t} motsto... kohdekansio 1>&2
-    exit 2
+# msgfmt required
+if [[ -z $(whence msgunfmt) ]]; then
+    print -- ${0:t}: asenna ensin gettext 1>&2
+    exit 1
 fi
 
-# Parse parameters
-shift mofiles
+# Set source files and target dir
+mofiles=($@[1,-2])
 dest=$@[$#]
 if [[ ! -d $dest ]]; then
-    print -- ${0:t}: $dest ei ole \(kohde\)kansio 1>&2
-    exit 2
+    print -- ${0:t}: $dest ei ole kansio 1>&2
+    exit 1
 fi
 
 # Compile files
@@ -35,7 +53,7 @@ for mofile in $mofiles; do
     print -- ${0:t}: "$mofile" -\> "$dest"
     if [[ ! -r $mofile || $mofile != *.mo ]]; then
         print -- ${0:t}: "$mofile" ei ole .mo-tiedosto tai ei voi lukea 1>&2
-        exit 2
+        exit 1
     fi
     msgunfmt -o $dest/${mofile:t:r}.po $mofile
 done

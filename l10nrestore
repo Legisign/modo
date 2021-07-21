@@ -2,7 +2,7 @@
 #
 # l10nrestore -- restore an .mo or a .qm file from a numbered backup
 #
-# 2021-07-19    Long switches (including new -h, --help).
+# 2021-07-21    Added -h which was actually missing.
 
 emulate -L zsh
 
@@ -15,7 +15,7 @@ if (( $# == 0 )); then
     exit 0
 fi
 
-zparseopts -E -D -help=usage n=dryrun -dry-run=dryrun s:=stepvar -steps:=stepvar v=verbose -verbose=verbose
+zparseopts -E -D h=usage -help=usage n=dryrun -dry-run=dryrun s:=stepvar -steps:=stepvar v=verbose -verbose=verbose
 if [[ -n $usage ]]; then
     <<EOF
 ${0:t} -- palauta .mo- tai .qm-tiedosto varmuuskopiosta
