@@ -18,7 +18,7 @@ Installs `modo` and `qmdo` to `/usr/local/sbin` (since they require root privile
 
 Usage is basically `modo pofile...`, but the target directory needs consideration. Unless given in a `modo.def` file (consisting solely of a target directory name) or with the `-d` switch of the script, `modo` uses either `/usr/share/locale/fi/LC_MESSAGES` in distros other than Ubuntu, or `/usr/share/locale-langpack/fi/LC_MESSAGES` in Ubuntu.
 
-**NOTE** the language code! It’s hard-coded because I’ve never needed anything else.
+**NOTE** the language code! It’s inferred from $LANG without the country code and encoding parts (i.e., `LANG=fi_FI.UTF-8` yields “fi”).
 
 ### `qmdo`
 
