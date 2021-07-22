@@ -2,7 +2,7 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2021-07-21    Enhanced command line option handling including -h, --help.
+# 2021-07-22    Added check for *.po pattern.
 
 emulate -L zsh
 
@@ -99,11 +99,8 @@ fi
 # Compile source files
 destfiles=()
 for pofile in $pofiles; do
-    if [[ ${pofile:t:r} != *_qt ]]; then
-        mofile=$modotemp/${pofile:t:r}.mo
-        print -- ${0:t}: Käännetään ${pofile:t}...
-        msgfmt -o $mofile $pofile && destfiles+=($mofile)
-    else
+    # *_qt.po files need to be compiled to *.qm
+    if [[ $pofile == *_qt.po ]]; then
         tsfile=$modotemp/${pofile:t:r}.ts
         mofile=$modotemp/${pofile:t:r}.qm
         print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
@@ -115,6 +112,14 @@ for pofile in $pofiles; do
             print -- ${0:t}: VIRHE: muunnos TS-tiedostoksi ei onnistunut 1>&2
             continue
         fi
+    # Ordinary *.po files
+    elif [[ $pofile == *.po ]]; then
+        mofile=$modotemp/${pofile:t:r}.mo
+        print -- ${0:t}: Käännetään ${pofile:t}...
+        msgfmt -o $mofile $pofile && destfiles+=($mofile)
+    # Not a *.po file
+    else
+        print -- ${0:t}: Ei Gettext-tiedosto, ohitetaan: $pofile 1>&2
     fi
 done
 

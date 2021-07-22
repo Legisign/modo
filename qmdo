@@ -25,6 +25,8 @@ Usage
     -d, --destination command line option or in a qmdo.def file in the
     current directory. The contents of the file is just the directory path.
 
+    NOTE: The target directory MUST be set, it cannot be guessed.
+
 Options
     -d DIR, --destination=DIR   set target directory
     --help                      show this help and quit
