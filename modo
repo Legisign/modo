@@ -27,7 +27,8 @@ Usage
     -   on Ubuntu: /usr/share/locale-langpack/LANGCODE/messages
     -   on other distros: /usr/share/locale/LANGCODE/messages
 
-    LANGCODE is taken from $LANG by discarding the country code and encoding.
+    LANGCODE is taken from \$LANG by discarding the country code and encoding
+    (default now: "${LANG%%_*}").
 
 Options
     -d DIR, --destination=DIR   set target directory
