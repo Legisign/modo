@@ -2,6 +2,7 @@
 
 ## modo
 
+*   2021-10-01    `-v`, `--verbose` switches.
 *   2021-07-22    Added check for `*.po` pattern.
 *   2021-07-21    Enhanced command line handling including `-h`, `--help`.
 *   2021-03-22    Bug fixes in the `.qm` target branch: `lconvert` requires `-target-language`.

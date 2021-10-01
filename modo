@@ -2,14 +2,14 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2021-07-22    Added check for *.po pattern.
+# 2021-10-01    -v, --verbose switches.
 
 emulate -L zsh
 
 declare modotemp dest tdestfile pofile tsfile
-declare -a convopts dest1 destfiles instopts pofiles usage
+declare -a convopts dest1 destfiles instopts pofiles usage verbose
 
-zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1
+zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v:=verbose -verbose:=verbose
 
 if [[ -n $usage ]]; then
     <<EOF
@@ -32,6 +32,7 @@ Usage
 
 Options
     -d DIR, --destination=DIR   set target directory
+    -v, --verbose               show the operations
     --help                      show this help and quit
 
 EOF
@@ -60,13 +61,13 @@ elif lsb_release -sd >& /dev/null | grep -iq ubuntu; then
 else
     dest=/usr/share/locale/${LANG%%_*}/LC_MESSAGES
 fi
-print -- ${0:t}: Kohdekansio: "$dest"
+[[ -n $verbose ]] && print -- ${0:t}: Kohdekansio: "$dest"
 
 # Make sure the target directory exists
 if [[ ! -d $dest ]]; then
-    print -- ${0:t}: kohdekansio puuttuu, yritetään luoda
+    [[ -n $verbose ]] && print -- ${0:t}: yritetään luoda kohdekansio
     if ! sudo mkdir -p $dest; then
-        print -- ${0:t}: VIRHE: kansion luominen epäonnistui 1>&2
+        print -- ${0:t}: kansiota "$dest" ei voitu luoda 1>&2
         exit 2
     fi
     sudo chmod -R 755 $dest
@@ -81,15 +82,12 @@ else
         [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles=($pofiles $pofile)
     done
 fi
-if (( $#pofiles == 0 )); then
-    print -- ${0:t}: VIRHE: ei lähdetiedostoja, lopetetaan \(kokeile --help\) 1>&2
-    exit 0
-fi
+(( $#pofiles > 0 )) || { print -- ${0:t}: ei lähdetiedostoja 1>&2; exit 0 }
 
 # Set temp directory
 if [[ ! -d $modotemp ]]; then
     if ! mkdir $modotemp > /dev/null 2>&1; then
-        print -- ${0:t}: VIRHE: väliaikaiskansiota ei voitu luoda 1>&2
+        print -- ${0:t}: väliaikaiskansiota "$modotemp" ei voitu luoda 1>&2
         exit 3
     fi
 # Remove left-over `.mo` files
@@ -104,32 +102,32 @@ for pofile in $pofiles; do
     if [[ $pofile == *_qt.po ]]; then
         tsfile=$modotemp/${pofile:t:r}.ts
         mofile=$modotemp/${pofile:t:r}.qm
-        print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
+        [[ -n $verbose ]] && print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
         lconvert $convopts -i $pofile -o $tsfile
         if (( $? == 0 )); then
-            print -- ${0:t}: Käännetään ${tsfile:t}...
+            [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${tsfile:t}...
             lrelease $tsfile -qm $mofile > /dev/null 2>&1 && destfiles+=($mofile)
         else
-            print -- ${0:t}: VIRHE: muunnos TS-tiedostoksi ei onnistunut 1>&2
+            print -- ${0:t}: muunnos TS-tiedostoksi epäonnistui 1>&2
             continue
         fi
     # Ordinary *.po files
     elif [[ $pofile == *.po ]]; then
         mofile=$modotemp/${pofile:t:r}.mo
-        print -- ${0:t}: Käännetään ${pofile:t}...
+        [[ -n $verbose]] && print -- ${0:t}: Käännetään ${pofile:t}...
         msgfmt -o $mofile $pofile && destfiles+=($mofile)
     # Not a *.po file
     else
-        print -- ${0:t}: Ei Gettext-tiedosto, ohitetaan: $pofile 1>&2
+        [[ -n $verbose ]] && print -- ${0:t}: ohitetaan "$pofile"
     fi
 done
 
 # Install target files
 if (( $#destfiles > 0 )); then
     for mofile in $destfiles; do
-        print -- ${0:t}: Kopioidaan $mofile -\> $dest...
+        [[ -n $verbose ]] && print -- ${0:t}: Kopioidaan $mofile -\> $dest...
         sudo install $instopts $mofile $dest && rm $mofile
     done
-else
-    print -- ${0:t}: VIRHE: ei mitään asennettavaa 1>&2
+elif [[ -n $verbose ]]; then
+    print -- ${0:t}: ei mitään asennettavaa
 fi
