@@ -45,6 +45,7 @@
 
 ## `qmdo` (previously `tsdo`)
 
+* 2021-10-02    `-v`, `--verbose` switch.
 * 2021-07-21    Enhanced command line handling including `-h`, `--help`.
 * 2020-01-17    Qt4 to Qt5; stylistic changes.
 * 2017-05-27    `lrelease` can be a symlink, so `$(whence lrelease)` is not enough.

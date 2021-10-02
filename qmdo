@@ -5,14 +5,14 @@
 # A variant of `modo` for the Qt localization system. Compiles and
 # installs `.ts` files.
 #
-# 2021-07-21    Enhanced command line handling including -h, --help.
+# 2021-10-02    -v, --verbose switch.
 
 emulate -L zsh
 
 declare dest temp qmfile tsfile
-declare -a dest1 instopts tsfiles usage
+declare -a dest1 instopts tsfiles usage verbose
 
-zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1
+zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v:=verbose -verbose:=verbose
 
 if [[ -n $usage ]]; then
     <<EOF
@@ -29,6 +29,7 @@ Usage
 
 Options
     -d DIR, --destination=DIR   set target directory
+    -v, --verbose               show operations
     --help                      show this help and quit
 EOF
     exit 0
@@ -36,15 +37,12 @@ fi
 
 # `lrelease` required
 if [[ -z $(whence lrelease) ]]; then
-    print -- ${0:t}: asenna ensin libqt5-linguist 1>&2
+    print -- ${0:t}: asenna libqt5-linguist 1>&2
     exit 1
 fi
 
 # Superuser privileges asked when required
-if (( $UID == 0 )); then
-    print -- ${0:t}: älä aja tätä ohjelmaa kokonaan pääkäyttäjänä 1>&2
-    exit 1
-fi
+(( $UID > 0 )) || { print -- ${0:t}: älä aja pääkäyttäjänä 1>&2; exit 1 }
 
 # Constants
 temp=/tmp/$(whoami)
@@ -57,12 +55,15 @@ if (( $#dest1 > 0 )); then
 elif [[ -r qmdo.def ]]; then
     dest=$(<qmdo.def)
 else
-    print -- ${0:t}: kohdekansio pitää määrittää \(kokeile --help\) 1>&2
+    print -- ${0:t}: kohdekansiota ei ole määritetty 1>&2
     exit 1
 fi
 if [[ ! -d $dest ]]; then
-    print -- ${0:t}: kohdekansiota ei ole olemassa 1>&2
-    exit 1
+    [[ -n $verbose ]] && print -- ${0:t}: luodaan kohdekansio "$dest"
+    if ! sudo mkdir -p $dest > /dev/null 2>&1; then
+        print -- ${0:t}: kohdekansiota "$dest" ei voitu luoda 1>&2
+        exit 1
+    fi
 fi
 
 # Collect source files
@@ -74,10 +75,7 @@ else
         [[ ! -f $qmfile || $tsfile -nt $qmfile ]] && tsfiles=($tsfiles $tsfile)
     done
 fi
-if (( $#tsfiles == 0  )); then
-    print -- ${0:t}: ei lähdetiedostoja 1>&2
-    exit 0
-fi
+(( $#tsfiles > 0 )) || { print -- ${0:t}: ei lähdetiedostoja 1>&2; exit 0 }
 
 # Set the temp dir
 if [[ ! -d $temp ]]; then
@@ -92,13 +90,13 @@ fi
 # Compile source files
 for tsfile in $tsfiles; do
     qmfile=$temp/${tsfile:t:r}.qm
-    print -- ${0:t}: käännetään ${tsfile:t}...
+    [[ -n $verbose]] && print -- ${0:t}: käännetään ${tsfile:t}...
 
     # Install target files
     if lrelease $tsfile -qm $qmfile > /dev/null 2>&1; then
-        print -- ${0:t}: kopioidaan ${qmfile:t} -\> $dest...
+        [[ -n $verbose ]] && print -- ${0:t}: kopioidaan ${qmfile:t} -\> $dest...
         sudo install $instopts $qmfile $dest && rm $qmfile
     else
-        print -- ${0:t}: käännösvirhe: "${tsfile:t}"\! 1>&2
+        print -- ${0:t}: käännösvirhe: "${tsfile:t}" 1>&2
     fi
 done
