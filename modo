@@ -114,7 +114,7 @@ for pofile in $pofiles; do
     # Ordinary *.po files
     elif [[ $pofile == *.po ]]; then
         mofile=$modotemp/${pofile:t:r}.mo
-        [[ -n $verbose]] && print -- ${0:t}: Käännetään ${pofile:t}...
+        [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${pofile:t}...
         msgfmt -o $mofile $pofile && destfiles+=($mofile)
     # Not a *.po file
     else

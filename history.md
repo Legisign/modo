@@ -35,6 +35,7 @@
 
 ## `l10nrestore` (previously `morestore`)
 
+* 2021-11-13    Small changes.
 * 2021-07-21    Added `-h` which was actually missing.
 * 2021-07-19    Long switches (including new `-h`, `--help`).
 * 2020-01-15    Conversion to zsh.
