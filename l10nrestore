@@ -2,7 +2,8 @@
 #
 # l10nrestore -- restore an .mo or a .qm file from a numbered backup
 #
-# 2022-06-29    Bug fix: not giving -s, --step resulted in an error. (TN)
+# 2022-06-29    Bug fix: not giving -s, --step resulted in an error.
+#               Also ~ written as \~ to avoid extended patterns. (TN)
 
 emulate -L zsh
 
@@ -46,7 +47,7 @@ for f in $*; do
         print -- ${0:t}: ei .mo- tai .qm-tiedosto, ohitetaan: $f 1>&2
         continue
     fi
-    backups=( ${f}.~<->~ )
+    backups=( ${f}.\~<->\~ )
     if (( $#backups < steps )); then
         print -- ${0:t}: enintään $#backups palautettavissa: $f 1>&2
         continue
@@ -62,13 +63,13 @@ for f in $*; do
 
     # 2) rename the steps-level backup to .mo
     (( point=$#backups - steps + 1 ))
-    [[ -n $verbose ]] && print -- 2 :: ${f}.~${point}~ → $f
-    [[ -n $dryrun ]] || sudo mv ${f}.~${point}~ $f || exit 1
+    [[ -n $verbose ]] && print -- 2 :: ${f}.\~${point}\~ → $f
+    [[ -n $dryrun ]] || sudo mv ${f}.\~${point}\~ $f || exit 1
 
     # 3) remove newer levels
     if (( point < $#backups )); then
-        [[ -n $verbose ]] && print -- 3 :: poistetaan ${f}.~{$(( point + 1 ))..$#backups}\~
-        [[ -n $dryrun ]] || sudo rm ${f}.~{$(( point + 1 ))..$#backups}~ || exit 1
+        [[ -n $verbose ]] && print -- 3 :: poistetaan ${f}.\~{$(( point + 1 ))..$#backups}\\~
+        [[ -n $dryrun ]] || sudo rm ${f}.\~{$(( point + 1 ))..$#backups}\~ || exit 1
     elif [[ -n $verbose ]]; then
         print -- 3 :: \(ei uudempia poistettavia versioita\)
     fi
