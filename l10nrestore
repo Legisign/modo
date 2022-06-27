@@ -2,12 +2,12 @@
 #
 # l10nrestore -- restore an .mo or a .qm file from a numbered backup
 #
-# 2021-11-13    Small changes (TN).
+# 2022-06-29    Bug fix: not giving -s, --step resulted in an error. (TN)
 
 emulate -L zsh
 
-declare -a backups
-declare f dryrun prg stepvar verbose
+declare -a backups dryrun stepvar verbose
+declare f tmpstr
 integer point steps
 
 if (( $# == 0 )); then
@@ -32,7 +32,14 @@ Valitsimet:
 EOF
     exit 0
 fi
-steps=${${stepvar[2]##=}:=1}
+
+if (( UID == 0 )); then
+    print -- ${0:t}: älä ajaa ohjelmaa pääkäyttäjänä 1>&2
+    exit 1
+fi
+
+tmpstr=${stepvar[2]##=}
+steps=${tmpstr:=1}
 
 for f in $*; do
     if [[ $f != *.(mo|qm) ]]; then
@@ -51,22 +58,22 @@ for f in $*; do
         continue
     fi
     [[ -n $verbose ]] && print -- 1 :: $f → $f.restore
-    [[ -n $dryrun ]] || mv $f $f.restore || exit 1
+    [[ -n $dryrun ]] || sudo mv $f $f.restore || exit 1
 
     # 2) rename the steps-level backup to .mo
     (( point=$#backups - steps + 1 ))
     [[ -n $verbose ]] && print -- 2 :: ${f}.~${point}~ → $f
-    [[ -n $dryrun ]] || mv ${f}.~${point}~ $f || exit 1
+    [[ -n $dryrun ]] || sudo mv ${f}.~${point}~ $f || exit 1
 
     # 3) remove newer levels
     if (( point < $#backups )); then
         [[ -n $verbose ]] && print -- 3 :: poistetaan ${f}.~{$(( point + 1 ))..$#backups}\~
-        [[ -n $dryrun ]] || rm ${f}.~{$(( point + 1 ))..$#backups}~ || exit 1
+        [[ -n $dryrun ]] || sudo rm ${f}.~{$(( point + 1 ))..$#backups}~ || exit 1
     elif [[ -n $verbose ]]; then
         print -- 3 :: \(ei uudempia poistettavia versioita\)
     fi
 
     # 4) remove the restoration backup
     [[ -n $verbose ]] && print -- 4 :: poistetaan ${f}.restore
-    [[ -n $dryrun ]] || rm ${f}.restore
+    [[ -n $dryrun ]] || sudo rm ${f}.restore
 done
