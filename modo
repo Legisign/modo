@@ -2,14 +2,15 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2021-10-01    -v, --verbose switches.
+# 2022-07-03    Fixed a bug in -v, --verbose and increased the verbosity
+#               in some places.
 
 emulate -L zsh
 
 declare modotemp dest tdestfile pofile tsfile
 declare -a convopts dest1 destfiles instopts pofiles usage verbose
 
-zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v:=verbose -verbose:=verbose
+zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v=verbose -verbose=verbose
 
 if [[ -n $usage ]]; then
     <<EOF
@@ -83,12 +84,17 @@ else
     done
 fi
 (( $#pofiles > 0 )) || { print -- ${0:t}: ei lähdetiedostoja 1>&2; exit 0 }
+[[ -n $verbose ]] && print -- ${0:t}: Lähdetiedostot: "$pofiles"
 
 # Set temp directory
+[[ -n $verbose ]] && print -- ${0:t}: Väliaikaiskansio: "$modotemp"
 if [[ ! -d $modotemp ]]; then
+    [[ -n $verbose ]] && print -- ${0:t}: ...puuttuu, luodaan
     if ! mkdir $modotemp > /dev/null 2>&1; then
         print -- ${0:t}: väliaikaiskansiota "$modotemp" ei voitu luoda 1>&2
         exit 3
+    elif [[ -n $verbose ]]; then
+        print -- ${0:t}: ...onnistui
     fi
 # Remove left-over `.mo` files
 elif ls -1 $modotemp | grep -q "\.mo\$"; then
