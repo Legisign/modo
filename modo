@@ -2,8 +2,7 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2022-07-03    Fixed a bug in -v, --verbose and increased the verbosity
-#               in some places.
+# 2022-07-08    Added a check that all files == *.po.
 
 emulate -L zsh
 
@@ -84,6 +83,7 @@ else
     done
 fi
 (( $#pofiles > 0 )) || { print -- ${0:t}: ei lähdetiedostoja 1>&2; exit 0 }
+[[ $pofiles == *.po ]] || { print -- ${0:t}: kaikki lähteet eivät ole .po-tiedostoja 1>&2; exit 1 }
 [[ -n $verbose ]] && print -- ${0:t}: Lähdetiedostot: "$pofiles"
 
 # Set temp directory

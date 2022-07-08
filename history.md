@@ -2,7 +2,8 @@
 
 ## modo
 
-* 2022-07-03    Fixed a bug in `-v`, `--verbose` and increased the verbosity in some places.
+*   2022-07-08    Added a check that all files == `*.po`.
+*   2022-07-03    Fixed a bug in `-v`, `--verbose` and increased the verbosity in some places.
 *   2021-10-01    `-v`, `--verbose` switches.
 *   2021-07-22    Added check for `*.po` pattern.
 *   2021-07-21    Enhanced command line handling including `-h`, `--help`.
