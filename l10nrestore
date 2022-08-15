@@ -4,6 +4,7 @@
 #
 # 2022-06-29    Bug fix: not giving -s, --step resulted in an error.
 #               Also ~ written as \~ to avoid extended patterns. (TN)
+# 2022-08-15    -n sets -v automatically. (TN)
 
 emulate -L zsh
 
@@ -34,13 +35,14 @@ EOF
     exit 0
 fi
 
+[[ -n $dryrun ]] && verbose=-v
+tmpstr=${stepvar[2]##=}
+steps=${tmpstr:=1}
+
 if (( UID == 0 )); then
     print -- ${0:t}: älä ajaa ohjelmaa pääkäyttäjänä 1>&2
     exit 1
 fi
-
-tmpstr=${stepvar[2]##=}
-steps=${tmpstr:=1}
 
 for f in $*; do
     if [[ $f != *.(mo|qm) ]]; then
