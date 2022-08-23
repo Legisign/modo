@@ -63,6 +63,7 @@
 
 ## `podo`
 
+* 2022-08-24    With only one parameter, use current dir as the destination.
 * 2021-07-21    Added `-h`, `--help`. Signals error if used as root.
 * 2020-10-28    Allow multiple sources.
 * 2019-02-21    `$argv` changed to `$@`.

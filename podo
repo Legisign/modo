@@ -4,7 +4,7 @@
 #
 # Usage: podo mofile ... target-dir
 #
-# 2021-07-21    Added -h, --help. Signals error if used as root.
+# 2022-08-24    With only one parameter, use current dir as the destination.
 
 emulate -L zsh
 
@@ -18,9 +18,10 @@ if [[ -n $usage ]]; then
 ${0:t} -- decompile Gettext localization files
 
 Usage
-    ${0:t} [ -h | --help | mofile ... target ]
+    ${0:t} [ -h | --help | mofile | mofile... target ]
 
     "target" is a directory where the .po files are copied.
+    With only one parameter, current directory is assumed.
 
 Options
     -h, --help  show the help and quit
@@ -40,12 +41,14 @@ if [[ -z $(whence msgunfmt) ]]; then
     exit 1
 fi
 
-# Set source files and target dir
-mofiles=($@[1,-2])
-dest=$@[$#]
-if [[ ! -d $dest ]]; then
-    print -- ${0:t}: $dest ei ole kansio 1>&2
-    exit 1
+# Set source files and target dir; with one file, default is .
+if [[ $# == 1 ]]; then
+    mofiles=$*
+    dest=.
+else
+    mofiles=($@[1,-2])
+    dest=$@[$#]
+    [[ -d $dest ]] || { print -- ${0:t}: $dest ei ole kansio 1>&2; exit 1 }
 fi
 
 # Compile files
