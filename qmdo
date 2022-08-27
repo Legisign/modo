@@ -90,7 +90,7 @@ fi
 # Compile source files
 for tsfile in $tsfiles; do
     qmfile=$temp/${tsfile:t:r}.qm
-    [[ -n $verbose]] && print -- ${0:t}: käännetään ${tsfile:t}...
+    [[ -n $verbose ]] && print -- ${0:t}: käännetään ${tsfile:t}...
 
     # Install target files
     if lrelease $tsfile -qm $qmfile > /dev/null 2>&1; then
