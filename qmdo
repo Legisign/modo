@@ -19,7 +19,7 @@ if [[ -n $usage ]]; then
 ${0:t} -- compile and install Qt localization files
 
 Usage
-    ${0:t} [ options ] tsfile...
+    ${0:t} -d DIR | --destination=DIR [ other options ] tsfile...
 
     Compiles and install each tsfile. The target directory can be set with
     -d, --destination command line option or in a qmdo.def file in the
