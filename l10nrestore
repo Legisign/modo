@@ -1,10 +1,11 @@
 #!/bin/zsh
 #
-# l10nrestore -- restore an .mo or a .qm file from a numbered backup
+# l10nrestore -- downgrade localization files
 #
-# 2022-06-29    Bug fix: not giving -s, --step resulted in an error.
-#               Also ~ written as \~ to avoid extended patterns. (TN)
-# 2022-08-15    -n sets -v automatically. (TN)
+# Usage:
+#   l10nrestore [ options ] file...
+#
+# 2022-11-20    Check the existence of the downgradable file first. (TN)
 
 emulate -L zsh
 
@@ -45,8 +46,8 @@ if (( UID == 0 )); then
 fi
 
 for f in $*; do
-    if [[ $f != *.(mo|qm) ]]; then
-        print -- ${0:t}: ei .mo- tai .qm-tiedosto, ohitetaan: $f 1>&2
+    if [[ ! -e $f || $f != *.(mo|qm) ]]; then
+        print -- ${0:t}: ei löydy tai ei ole .mo- tai .qm-tiedosto: $f 1>&2
         continue
     fi
     backups=( ${f}.\~<->\~ )

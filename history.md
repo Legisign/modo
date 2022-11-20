@@ -37,6 +37,8 @@
 
 ## `l10nrestore` (previously `morestore`)
 
+* 2022-11-20    Check the existence of the downgradable file first.
+* 2022-08-15    -n sets -v automatically.
 * 2022-06-29    Bug fix: not giving `-s`, `--step` resulted in an error. Also `~` written as `\~` to avoid extended patterns.
 * 2021-11-13    Small changes.
 * 2021-07-21    Added `-h` which was actually missing.
