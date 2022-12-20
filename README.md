@@ -27,3 +27,5 @@ Usage is `qmdo tsfile...` and the target directory is OBLIGATORILY set in a `qmd
 ### `l10nrestore`
 
 As `modo` and `qmdo` create numbered backups, `l10nrestore` allows reverting to an older file. This is the only script having an actual usage screen (`-h` or `--help`).
+
+Blah blah blah.
