@@ -2,6 +2,7 @@
 
 ## modo
 
+*   2023-03-14    Tries to locate the destination directory.
 *   2022-07-08    Added a check that all files == `*.po`.
 *   2022-07-03    Fixed a bug in `-v`, `--verbose` and increased the verbosity in some places.
 *   2021-10-01    `-v`, `--verbose` switches.

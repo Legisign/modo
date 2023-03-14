@@ -3,35 +3,41 @@
 # modo -- compile and install Gettext localization files
 #
 # 2022-07-08    Added a check that all files == *.po.
+# 2023-03-14    Tries to locate the destination directory.
 
 emulate -L zsh
 
-declare modotemp dest tdestfile pofile tsfile
-declare -a convopts dest1 destfiles instopts pofiles usage verbose
+declare d dest force lang modotemp pofile prefix suffix tsfile
+declare -a convopts dest1 destfiles instopts l10ndirs pofiles usage verbose
+integer destgiven=0
 
-zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v=verbose -verbose=verbose
+zparseopts -E -D f=force -force=force h=usage -help=usage d:=dest1 -destination:=dest1 v=verbose -verbose=verbose
 
 if [[ -n $usage ]]; then
     <<EOF
 ${0:t} -- compile and install Gettext localization files
 
 Usage
-    ${0:t} [ options ] pofile...
+    ${0:t} [options] pofile...
 
     Compiles and installs each pofile. The target directory can be set with
     -d, --destination command line option or in a modo.def file in the current
     directory. The contents of the file is just the directory path.
 
-    Unless explicitly given, the script tries to guess the target:
-
-    -   on Ubuntu: /usr/share/locale-langpack/LANGCODE/messages
-    -   on other distros: /usr/share/locale/LANGCODE/messages
+    Unless explicitly given, the script tries to search the target in the
+    following directories:
+    -   /usr/share/locale/LANGCODE/LC_MESSAGES
+    -   /usr/share/locale/kf5/LANGCODE/LC_MESSAGES
+    -   /usr/share/locale-langpack/LANGCODE/LC_MESSAGES
+    If an older file is not found and the -f, --force flag is not given,
+    a warning is reported and nothing is done for the given file.
 
     LANGCODE is taken from \$LANG by discarding the country code and encoding
     (default now: "${LANG%%_*}").
 
 Options
     -d DIR, --destination=DIR   set target directory
+    -f, --force                 install file even if dir not given or found
     -v, --verbose               show the operations
     --help                      show this help and quit
 
@@ -40,9 +46,13 @@ EOF
 fi
 
 # Constants
-convopts=(-target-language fi)
+lang=${LANG%%_*}
+convopts=(-target-language $lang)
 modotemp=/tmp/$(whoami)
 instopts=(--backup=numbered -o root -g root -m 444)
+prefix=/usr/share/locale
+suffix=LC_MESSAGES
+l10ndirs=($prefix/$lang/$suffix $prefix/kf5/$lang/$suffix $prefix-langpack/$lang/$suffix)
 
 # msgfmt required
 if [[ -z $(whence msgfmt) ]]; then
@@ -50,27 +60,28 @@ if [[ -z $(whence msgfmt) ]]; then
     exit 1
 fi
 
-# Target directory explicitly given on the command line
+# If target directory is explicitly given on the command line...
 if (( $#dest1 > 0 )); then
+    destgiven=1
     dest=${dest1[-1]##=}
-# If not given, try and read `modo.def`, if readable
+# Or if there's a readable modo.def...
 elif [[ -r modo.def ]]; then
+    destgiven=1
     dest=$(<modo.def)
-elif lsb_release -sd >& /dev/null | grep -iq ubuntu; then
-    dest=/usr/share/locale-langpack/${LANG%%_*}/LC_MESSAGES
-else
-    dest=/usr/share/locale/${LANG%%_*}/LC_MESSAGES
 fi
-[[ -n $verbose ]] && print -- ${0:t}: Kohdekansio: "$dest"
-
-# Make sure the target directory exists
-if [[ ! -d $dest ]]; then
-    [[ -n $verbose ]] && print -- ${0:t}: yritetään luoda kohdekansio
-    if ! sudo mkdir -p $dest; then
-        print -- ${0:t}: kansiota "$dest" ei voitu luoda 1>&2
-        exit 2
+# If the target dir is given, make sure it exists
+if (( $destgiven )); then
+    [[ -n $verbose ]] && print -- ${0:t}: Kohdekansio: "$dest"
+    if [[ ! -d $dest ]]; then
+        [[ -n $verbose ]] && print -- ${0:t}: yritetään luoda kohdekansio
+        if ! sudo mkdir -p $dest; then
+            print -- ${0:t}: kansiota "$dest" ei voitu luoda 1>&2
+            exit 2
+        fi
+        sudo chmod -R 755 $dest
     fi
-    sudo chmod -R 755 $dest
+elif [[ -n $verbose ]]; then
+    print -- ${0:t}: Tarkistetaan kohdekansio lennossa
 fi
 
 # Collect source files
@@ -131,8 +142,21 @@ done
 # Install target files
 if (( $#destfiles > 0 )); then
     for mofile in $destfiles; do
+        if (( ! $destgiven )); then
+            dest=
+            for d in $l10ndirs; do
+                if [[ -e $d/${mofile:t} ]]; then
+                    dest=$d
+                    break
+                fi
+            done
+            if [[ -z $dest ]]; then
+                print -- ${0:t}: kohdekansiota ei löydy: ${mofile:t}
+                continue
+            fi
+        fi
         [[ -n $verbose ]] && print -- ${0:t}: Kopioidaan $mofile -\> $dest...
-        sudo install $instopts $mofile $dest && rm $mofile
+        print sudo install $instopts $mofile $dest && rm $mofile
     done
 elif [[ -n $verbose ]]; then
     print -- ${0:t}: ei mitään asennettavaa
