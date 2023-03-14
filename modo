@@ -2,7 +2,6 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2022-07-08    Added a check that all files == *.po.
 # 2023-03-14    Tries to locate the destination directory.
 
 emulate -L zsh
@@ -151,12 +150,17 @@ if (( $#destfiles > 0 )); then
                 fi
             done
             if [[ -z $dest ]]; then
-                print -- ${0:t}: kohdekansiota ei löydy: ${mofile:t}
-                continue
+                if [[ -z $force ]]; then
+                    print -- ${0:t}: kohdekansiota ei löydy, ohitetaan: ${mofile:t}
+                    continue
+                else
+                    dest=$l10ndirs[1]
+                    [[ -n $verbose ]] && print -- ${0:t}: kohdekansiota ei löydy, käytetään oletusta: ${mofile:t}
+                fi
             fi
         fi
         [[ -n $verbose ]] && print -- ${0:t}: Kopioidaan $mofile -\> $dest...
-        print sudo install $instopts $mofile $dest && rm $mofile
+        sudo install $instopts $mofile $dest && rm $mofile
     done
 elif [[ -n $verbose ]]; then
     print -- ${0:t}: ei mitään asennettavaa
