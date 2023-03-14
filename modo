@@ -141,14 +141,19 @@ done
 # Install target files
 if (( $#destfiles > 0 )); then
     for mofile in $destfiles; do
+        # If destination NOT given with -d, --destination or
+        # the modo.def file...
         if (( ! $destgiven )); then
             dest=
+            # Find a previous version of the file to be installed
             for d in $l10ndirs; do
                 if [[ -e $d/${mofile:t} ]]; then
                     dest=$d
                     break
                 fi
             done
+            # If destination is still not found, give up,
+            # unless -f, --force also given
             if [[ -z $dest ]]; then
                 if [[ -z $force ]]; then
                     print -- ${0:t}: kohdekansiota ei löydy, ohitetaan: ${mofile:t}
