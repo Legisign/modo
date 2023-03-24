@@ -89,7 +89,7 @@ if (( $# > 0 )); then
 else
     for pofile in *.po(.N); do
         mofile=$dest/${pofile:t:r}.mo
-        [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles=($pofiles $pofile)
+        [[ ! -f $mofile || $pofile -nt $mofile ]] && pofiles+=($pofile)
     done
 fi
 (( $#pofiles > 0 )) || { print -- ${0:t}: ei lähdetiedostoja 1>&2; exit 0 }
