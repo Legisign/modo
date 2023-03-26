@@ -2,17 +2,12 @@
 
 `modo` is a collection of zsh scripts dealing with day-to-day tasks of GNU Gettext (`.po`) and Qt (`.ts`) localization files.
 
-*   `install_modos`: simple script installer
 *   `modo`: compile and install a GNU Gettext-format `.po` file (as `.mo`)
 *   `qmdo`: compile and install a Qt-format `.ts` file (as `.qm`)
 *   `l10nrestore`: restore a previous version of a `.mo` or `.qm` file
 *   `podo`: reverse-compile a `.mo` file as `.po` to allow editing
 
 ## Notes on some of the scripts
-
-### `install_modos`
-
-Installs `modo` and `qmdo` to `/usr/local/sbin` (since they require root privileges in order to install the target files) and `l10nrestore` and `podo` to `/usr/local/bin` (since they don’t).
 
 ### `modo`
 
