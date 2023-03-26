@@ -11,9 +11,11 @@
 
 ### `modo`
 
-Usage is basically `modo pofile...`, but the target directory needs consideration. Unless given in a `modo.def` file (consisting solely of a target directory name) or with the `-d` switch of the script, `modo` uses either `/usr/share/locale/fi/LC_MESSAGES` in distros other than Ubuntu, or `/usr/share/locale-langpack/fi/LC_MESSAGES` in Ubuntu.
+Usage is basically `modo pofile...`.
 
-**NOTE** The language code is taken from $LANG without the country code and encoding parts (i.e., `LANG=fi_FI.UTF-8` yields “fi”).
+Unless given in the command line with `-d`, `--destination` switch or in a config file name `modo.def` (whose contents are the destination directory), `modo` tries to locate an older version of the destination file. If not found and no `-f`, `--force` switch is given, the script gives up. With `-f`, `--force`, the default destination directory is used (`/usr/share/locale/LANGCODE/LC_MESSAGES`).
+
+**NOTE** LANGCODE is taken from `$LANG` without the country code and encoding parts (i.e., `LANG=fi_FI.UTF-8` yields “fi”).
 
 ### `qmdo`
 
