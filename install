@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+local admins group installer prefix
+local -a instopts
+
+installer=$(whence install)
+prefix=/usr/local
+for group in staff wheel root; do
+    if grep -q "^${group}:" /etc/group; then
+        admins=$group
+        break
+    fi
+done
+instopts=(-g $admins -m 755)
+$installer $instopts l10nrestore modo qmdo /usr/local/sbin
+$installer $instopts podo /usr/local/bin
