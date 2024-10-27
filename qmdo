@@ -5,15 +5,28 @@
 # A variant of `modo` for the Qt localization system. Compiles and
 # installs `.ts` files.
 #
-# 2021-10-02    -v, --verbose switch.
+# 2024-10-27    Try harder to find lrelease; saner error message if
+#               accidentally run in a directory without *.ts files.
 
 emulate -L zsh
 
+declare LRELEASE
 declare dest temp qmfile tsfile
 declare -a dest1 instopts tsfiles usage verbose
 
-zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v:=verbose -verbose:=verbose
+# Try to locate lrelease
+LRELEASE=$(whence lrelease)
+[[ -n $LRELEASE ]] || LRELEASE=$(whence lrelease-qt5)
+if [[ -z $LRELEASE ]]; then
+    print -- ${0:t}: asenna Qt Linguist \(esim. libqt5-linguist\) 1>&2
+    exit 1
+fi
 
+# Constants
+temp=/tmp/$(whoami)
+instopts=(--backup=numbered -m 444)
+
+zparseopts -E -D h=usage -help=usage d:=dest1 -destination:=dest1 v:=verbose -verbose:=verbose
 if [[ -n $usage ]]; then
     <<EOF
 ${0:t} -- compile and install Qt localization files
@@ -35,38 +48,12 @@ EOF
     exit 0
 fi
 
-# `lrelease` required
-if [[ -z $(whence lrelease) ]]; then
-    print -- ${0:t}: asenna libqt5-linguist 1>&2
-    exit 1
-fi
-
 # Superuser privileges asked when required
 (( $UID > 0 )) || { print -- ${0:t}: älä aja pääkäyttäjänä 1>&2; exit 1 }
 
-# Constants
-temp=/tmp/$(whoami)
-instopts=(--backup=numbered -m 444)
-
-# Target directory explicitly given on the command line
-if (( $#dest1 > 0 )); then
-    dest=${dest1[-1]##=}
-# If not given, try and read `qmdo.def`, if readable
-elif [[ -r qmdo.def ]]; then
-    dest=$(<qmdo.def)
-else
-    print -- ${0:t}: kohdekansiota ei ole määritetty 1>&2
-    exit 1
-fi
-if [[ ! -d $dest ]]; then
-    [[ -n $verbose ]] && print -- ${0:t}: luodaan kohdekansio "$dest"
-    if ! sudo mkdir -p $dest > /dev/null 2>&1; then
-        print -- ${0:t}: kohdekansiota "$dest" ei voitu luoda 1>&2
-        exit 1
-    fi
-fi
-
-# Collect source files
+# Collect source files -- this is done first so that if the script
+# is accidentally run in a directory without sources, the error message
+# is more sane
 if (( $# > 0 )); then
     tsfiles=($@)
 else
@@ -87,13 +74,31 @@ elif ls -1 $temp | grep -q "\.qm\$"; then
     rm $temp/*.qm
 fi
 
+# Target directory explicitly given on the command line
+if (( $#dest1 > 0 )); then
+    dest=${dest1[-1]##=}
+# If not given, try and read qmdo.def, if readable
+elif [[ -r qmdo.def ]]; then
+    dest=$(<qmdo.def)
+else
+    print -- ${0:t}: kohdekansiota ei ole määritetty 1>&2
+    exit 1
+fi
+if [[ ! -d $dest ]]; then
+    [[ -n $verbose ]] && print -- ${0:t}: luodaan kohdekansio "$dest"
+    if ! sudo mkdir -p $dest > /dev/null 2>&1; then
+        print -- ${0:t}: kohdekansiota "$dest" ei voitu luoda 1>&2
+        exit 1
+    fi
+fi
+
 # Compile source files
 for tsfile in $tsfiles; do
     qmfile=$temp/${tsfile:t:r}.qm
     [[ -n $verbose ]] && print -- ${0:t}: käännetään ${tsfile:t}...
 
     # Install target files
-    if lrelease $tsfile -qm $qmfile > /dev/null 2>&1; then
+    if $LRELEASE $tsfile -qm $qmfile > /dev/null 2>&1; then
         [[ -n $verbose ]] && print -- ${0:t}: kopioidaan ${qmfile:t} -\> $dest...
         sudo install $instopts $qmfile $dest && rm $qmfile
     else

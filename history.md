@@ -52,6 +52,7 @@
 
 ## `qmdo` (previously `tsdo`)
 
+* 2024-10-27    Try harder to find `lrelease`; saner error message if accidentally run in a directory without `*.ts` files.
 * 2021-10-02    `-v`, `--verbose` switch.
 * 2021-07-21    Enhanced command line handling including `-h`, `--help`.
 * 2020-01-17    Qt4 to Qt5; stylistic changes.
@@ -85,4 +86,3 @@
 * 2016-09-18    No need to install unless source is newer.
 * 2016-09-17    `podo` added. `do_install` function.
 * 2016-09-13    Ready.
-
