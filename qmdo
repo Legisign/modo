@@ -16,11 +16,8 @@ declare -a dest1 instopts tsfiles usage verbose
 
 # Try to locate lrelease
 LRELEASE=$(whence lrelease)
-[[ -n $LRELEASE ]] || LRELEASE=$(whence lrelease-qt5)
-if [[ -z $LRELEASE ]]; then
-    print -- ${0:t}: asenna Qt Linguist \(esim. libqt5-linguist\) 1>&2
-    exit 1
-fi
+[[ -n $LRELEASE ]] || LRELEASE=$(whence lrelease6)
+[[ -n $LRELEASE ]] || { print -- ${0:t}: asenna Qt Linguist 1>&2;  exit 1 }
 
 # Constants
 temp=/tmp/$(whoami)
