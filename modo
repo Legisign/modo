@@ -2,7 +2,7 @@
 #
 # modo -- compile and install Gettext localization files
 #
-# 2023-03-14    Tries to locate the destination directory.
+# 2024-12-17    Stylistic change.
 
 emulate -L zsh
 
@@ -114,28 +114,28 @@ fi
 # Compile source files
 destfiles=()
 for pofile in $pofiles; do
-    # *_qt.po files need to be compiled to *.qm
-    if [[ $pofile == *_qt.po ]]; then
-        tsfile=$modotemp/${pofile:t:r}.ts
-        mofile=$modotemp/${pofile:t:r}.qm
-        [[ -n $verbose ]] && print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
-        lconvert $convopts -i $pofile -o $tsfile
-        if (( $? == 0 )); then
-            [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${tsfile:t}...
-            lrelease $tsfile -qm $mofile > /dev/null 2>&1 && destfiles+=($mofile)
-        else
-            print -- ${0:t}: muunnos TS-tiedostoksi epäonnistui 1>&2
-            continue
-        fi
-    # Ordinary *.po files
-    elif [[ $pofile == *.po ]]; then
-        mofile=$modotemp/${pofile:t:r}.mo
-        [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${pofile:t}...
-        msgfmt -o $mofile $pofile && destfiles+=($mofile)
-    # Not a *.po file
-    else
-        [[ -n $verbose ]] && print -- ${0:t}: ohitetaan "$pofile"
-    fi
+    case $pofile in
+        (*_qt.po) # *_qt.po files need to be compiled to *.qm
+            tsfile=$modotemp/${pofile:t:r}.ts
+            mofile=$modotemp/${pofile:t:r}.qm
+            [[ -n $verbose ]] && print -- ${0:t}: Tehdään välitiedosto ${tsfile:t}...
+            if lconvert $convopts -i $pofile -o $tsfile; then
+                [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${tsfile:t}...
+                lrelease $tsfile -qm $mofile > /dev/null 2>&1 && destfiles+=($mofile)
+            else
+                print -- ${0:t}: muunnos TS-tiedostoksi epäonnistui 1>&2
+                continue
+            fi
+            ;;
+        (*.po) # Ordinary .po file
+            mofile=$modotemp/${pofile:t:r}.mo
+            [[ -n $verbose ]] && print -- ${0:t}: Käännetään ${pofile:t}...
+            msgfmt -o $mofile $pofile && destfiles+=($mofile)
+            ;;
+        (*) # Anything else (not a .po file)
+            [[ -n $verbose ]] && print -- ${0:t}: ohitetaan "$pofile"
+            ;;
+    esac
 done
 
 # Install target files
